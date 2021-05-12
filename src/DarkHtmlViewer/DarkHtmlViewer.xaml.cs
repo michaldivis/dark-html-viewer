@@ -157,6 +157,11 @@ namespace DarkHtmlViewer
             webView2.CoreWebView2.Settings.IsWebMessageEnabled = false;
             webView2.CoreWebView2.Settings.IsZoomControlEnabled = false;
             webView2.CoreWebView2.Settings.IsBuiltInErrorPageEnabled = false;
+
+            //TODO implement this when the WebView2 v1.0.865 is out of prerelase
+            //webView2.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
+            //webView2.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
+            //webView2.CoreWebView2.Settings.IsPasswordAutofillEnabled = false;
         }
 
         #endregion
