@@ -156,6 +156,7 @@ namespace DarkHtmlViewer
             webView2.CoreWebView2.Settings.IsStatusBarEnabled = false;
             webView2.CoreWebView2.Settings.IsWebMessageEnabled = false;
             webView2.CoreWebView2.Settings.IsZoomControlEnabled = false;
+            webView2.CoreWebView2.Settings.IsBuiltInErrorPageEnabled = false;
         }
 
         #endregion
