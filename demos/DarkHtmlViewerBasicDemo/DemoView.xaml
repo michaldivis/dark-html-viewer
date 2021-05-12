@@ -1,0 +1,75 @@
+﻿<Window
+    x:Class="DarkHtmlViewerBasicDemo.DemoView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:darkhtmlviewer="clr-namespace:DarkHtmlViewer;assembly=DarkHtmlViewer"
+    xmlns:local="clr-namespace:DarkHtmlViewerBasicDemo"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="DemoView"
+    Width="800"
+    Height="450"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <Window.DataContext>
+        <local:DemoViewModel />
+    </Window.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border
+            Grid.Row="0"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Padding="5"
+            Background="#eee">
+            <WrapPanel>
+                <Button
+                    Margin="5"
+                    Padding="10,5,10,5"
+                    Command="{Binding ElementName=darkHtmlViewer, Path=LoadAndScrollCommand}"
+                    CommandParameter="{Binding TestLoadAndScrollData}"
+                    Content="Load page 1 and scroll to footer" />
+                <Button
+                    Margin="5"
+                    Padding="10,5,10,5"
+                    Command="{Binding ElementName=darkHtmlViewer, Path=ScrollCommand}"
+                    CommandParameter="footer"
+                    Content="Scroll to footer" />
+            </WrapPanel>
+        </Border>
+
+        <Border
+            Grid.Row="1"
+            Grid.Column="0"
+            Padding="5"
+            Background="#ddd">
+            <ItemsControl ItemsSource="{Binding Items}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button
+                            Margin="5"
+                            Padding="10,5,10,5"
+                            Command="{Binding ElementName=darkHtmlViewer, Path=LoadCommand}"
+                            CommandParameter="{Binding Html}"
+                            Content="{Binding Title}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
+
+        <darkhtmlviewer:DarkHtmlViewer
+            x:Name="darkHtmlViewer"
+            Grid.Row="1"
+            Grid.Column="1"
+            LinkClickedCommand="{Binding MyLinkClickedCommand}" />
+    </Grid>
+</Window>

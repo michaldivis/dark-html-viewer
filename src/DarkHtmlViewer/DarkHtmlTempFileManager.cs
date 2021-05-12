@@ -8,7 +8,7 @@ namespace DarkHtmlViewer
         private Guid _instanceId;
         private string _tempFileDir;
         private string _tempFilePath;
-        private int _count = 1;
+        private int _count = 0;
 
         public DarkHtmlTempFileManager()
         {
@@ -21,6 +21,8 @@ namespace DarkHtmlViewer
 
             _tempFileDir = GetTempFileDirPath();
             _tempFilePath = Path.Combine(_tempFileDir, $"{_instanceId}_tmp_{_count}.html");
+
+            Create(null);
         }
 
         public void Create(string html)
