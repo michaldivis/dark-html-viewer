@@ -49,6 +49,7 @@ namespace DarkHtmlViewer
         public ICommand LoadCommand => new DarkCommand<string>(LoadHtmlContent);
         public ICommand ScrollCommand => new DarkAsyncCommand<string>(ScrollAsync);
         public ICommand LoadAndScrollCommand => new DarkAsyncCommand<LoadAndScrollData>(LoadAndScrollAsync);
+        public ICommand PrintCommand => new DarkAsyncCommand(PrintAsync);
 
         #endregion
 
@@ -141,6 +142,16 @@ namespace DarkHtmlViewer
         {
             LoadHtmlContent(data.HtmlContent);
             await ScrollAsync(data.Link);
+        }
+
+        #endregion
+
+        #region Printing
+
+        private async Task PrintAsync()
+        {
+            var script = "window.print();";
+            await webView2.ExecuteScriptAsync(script);
         }
 
         #endregion
