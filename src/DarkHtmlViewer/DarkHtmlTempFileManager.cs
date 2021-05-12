@@ -44,8 +44,7 @@ namespace DarkHtmlViewer
 
         private string GetTempFileDirPath()
         {
-            //TODO replace this dir path with a path from config (ideally to appdata)
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "tmp_html");
+            return Path.Combine(Path.GetTempPath(), "tmp_html");
         }
     }
 }
