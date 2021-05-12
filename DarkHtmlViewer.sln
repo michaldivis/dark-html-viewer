@@ -3,18 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31129.286
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DarkHtmlViewer", "src\DarkHtmlViewer\DarkHtmlViewer.csproj", "{992F6AC0-6571-4BE2-8055-90A5604F6FFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DarkHtmlViewer", "src\DarkHtmlViewer\DarkHtmlViewer.csproj", "{992F6AC0-6571-4BE2-8055-90A5604F6FFC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B3EA3A97-B058-466C-AD9C-652395957DE0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{F889AF35-BE64-4FE8-B805-FBB0C836A4BF}"
 	ProjectSection(SolutionItems) = preProject
-		docs\README.md = docs\README.md
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demos", "demos", "{C6CD08FE-7ADD-4802-BF67-FF5D177D9017}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DarkHtmlViewerBasicDemo", "demos\DarkHtmlViewerBasicDemo\DarkHtmlViewerBasicDemo.csproj", "{8831F5C0-B810-4F6E-8EF3-C4AB048BA9F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DarkHtmlViewerBasicDemo", "demos\DarkHtmlViewerBasicDemo\DarkHtmlViewerBasicDemo.csproj", "{8831F5C0-B810-4F6E-8EF3-C4AB048BA9F4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
