@@ -12,6 +12,8 @@ namespace DarkHtmlViewer
     {
         private readonly DarkHtmlTempFileManager _fileManager;
 
+        #region Bindable properties
+
         public string HtmlContent
         {
             get => (string)GetValue(HtmlContentProperty);
@@ -40,27 +42,32 @@ namespace DarkHtmlViewer
                 typeof(DarkHtmlViewer),
                 new PropertyMetadata(null));
 
+        #endregion
+
+        #region Commands
+
         public ICommand LoadCommand => new DarkCommand<string>(LoadHtmlContent);
         public ICommand ScrollCommand => new DarkAsyncCommand<string>(ScrollAsync);
         public ICommand LoadAndScrollCommand => new DarkAsyncCommand<LoadAndScrollData>(LoadAndScrollAsync);
+
+        #endregion
 
         public DarkHtmlViewer()
         {
             InitializeComponent();
 
-            //TODO replace this dir path with a path from config (ideally to appdata)
-            _fileManager = new DarkHtmlTempFileManager(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "tmp_html"));
+            _fileManager = new DarkHtmlTempFileManager();
 
-            Initialize();
+            InitializeWebView2();
         }
 
         #region Initialization
 
-        private void Initialize()
+        private void InitializeWebView2()
         {
             webView2.Source = new Uri(_fileManager.GetFilePath());
-            webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
 
+            webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
             webView2.NavigationStarting += WebView2_NavigationStarting;
         }
 
