@@ -25,8 +25,6 @@ To load content into the viewer, bind an HTML string to it's `HtmlContent` prope
 ```
 or use the `LoadCommand` and pass the HTML string as  the `CommandParameter'
 ```XAML
-<darkhtmlviewer:DarkHtmlViewer x:Name="darkHtmlViewer" />
-
 <Button
     Command="{Binding ElementName=darkHtmlViewer, Path=LoadCommand}"
     CommandParameter="{Binding MyHtmlString}"
