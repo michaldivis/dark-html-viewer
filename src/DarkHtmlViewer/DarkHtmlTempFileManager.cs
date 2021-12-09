@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace DarkHtmlViewer
 {
@@ -22,19 +23,24 @@ namespace DarkHtmlViewer
             _tempFileDir = GetTempFileDirPath();
             _tempFilePath = Path.Combine(_tempFileDir, $"{_instanceId}_tmp_{_count}.html");
 
-            Create(null);
+            Create("<p></p>");
         }
 
         public void Create(string html)
         {
             Directory.CreateDirectory(_tempFileDir);
 
-            File.Delete(_tempFilePath);
+            DeleteTempFile();
 
             _count++;
             _tempFilePath = Path.Combine(_tempFileDir, $"{_instanceId}_tmp_{_count}.html");
 
             File.WriteAllText(_tempFilePath, html);
+        }
+
+        public void DeleteTempFile()
+        {
+            File.Delete(_tempFilePath);
         }
 
         public string GetFilePath()
@@ -45,6 +51,18 @@ namespace DarkHtmlViewer
         private string GetTempFileDirPath()
         {
             return Path.Combine(Path.GetTempPath(), "tmp_html");
+        }
+
+        public bool IsTempFilePath(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            var pattern = _instanceId + @"_tmp_\d+\.html";
+            var match = Regex.Match(text, pattern);
+            return match.Success;
         }
     }
 }
