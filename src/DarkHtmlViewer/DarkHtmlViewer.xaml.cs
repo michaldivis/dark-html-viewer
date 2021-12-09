@@ -1,4 +1,5 @@
 ﻿using DarkHelpers.Commands;
+using Microsoft.Web.WebView2.Core;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -47,8 +48,11 @@ namespace DarkHtmlViewer
         #region Commands
 
         public ICommand LoadCommand => new DarkCommand<string>(LoadHtmlContent);
+        public ICommand LoadAndScrollCommand => new DarkCommand<LoadAndScrollData>(LoadAndScroll);
         public ICommand ScrollCommand => new DarkAsyncCommand<string>(ScrollAsync);
-        public ICommand LoadAndScrollCommand => new DarkAsyncCommand<LoadAndScrollData>(LoadAndScrollAsync);
+        public ICommand ScrollOnNextLoadCommand => new DarkCommand<string>(ScrollOnNextLoad);
+        public ICommand SearchCommand => new DarkAsyncCommand<string>(SearchAsync);
+        public ICommand SearchOnNextLoadCommand => new DarkCommand<string>(SearchOnNextLoad);
         public ICommand PrintCommand => new DarkAsyncCommand(PrintAsync);
 
         #endregion
@@ -64,15 +68,47 @@ namespace DarkHtmlViewer
 
         #region Initialization
 
-        private void InitializeWebView2()
+        private bool _initialized;
+        private string _loadAfterInitialization = null;
+        private async void InitializeWebView2()
         {
-            webView2.Source = new Uri(_fileManager.GetFilePath());
+            var initFilePath = _fileManager.GetFilePath();
 
             webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
             webView2.NavigationStarting += WebView2_NavigationStarting;
+            webView2.NavigationCompleted += WebView2_NavigationCompleted;
+
+            var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            var dataFolder = Path.Combine(appDataDir, "webView2_env");
+            var env = await CoreWebView2Environment.CreateAsync(null, dataFolder);
+
+            await webView2.EnsureCoreWebView2Async(env);
+
+            SetWebViewSource(initFilePath);
+
+            webView2.Visibility = Visibility.Visible;
+
+            _initialized = true;
+
+            LoadQeuedContentIfAny();
         }
 
-        private void WebView2_CoreWebView2InitializationCompleted(object sender, Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs e)
+        private void SetWebViewSource(string uri)
+        {
+            webView2.CoreWebView2?.Navigate(uri);
+        }
+
+        private void LoadQeuedContentIfAny()
+        {
+            if (_loadAfterInitialization is null)
+            {
+                return;
+            }
+
+            LoadHtmlContent(_loadAfterInitialization);
+        }
+
+        private void WebView2_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
             DisableAllExtraFunctionality();
         }
@@ -92,21 +128,28 @@ namespace DarkHtmlViewer
 
         private void LoadHtmlContent(string html)
         {
+            if (_initialized is false)
+            {
+                _loadAfterInitialization = html;
+                return;
+            }
+
             _fileManager.Create(html);
-            webView2.Source = new Uri(_fileManager.GetFilePath());
+            var htmlFilePath = _fileManager.GetFilePath();
+            SetWebViewSource(htmlFilePath);
         }
 
         #endregion
 
         #region Navigation
 
-        private void WebView2_NavigationStarting(object sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationStartingEventArgs e)
+        private void WebView2_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
         {
-            string linkName = Path.GetFileName(e.Uri);
+            var linkName = Path.GetFileName(e.Uri);
 
-            string currentFileName = Path.GetFileName(_fileManager.GetFilePath());
+            var isTempFileName = _fileManager.IsTempFilePath(linkName);
 
-            if (linkName == currentFileName)
+            if (isTempFileName)
             {
                 return;
             }
@@ -118,7 +161,7 @@ namespace DarkHtmlViewer
 
         private void TriggerLinkClicked(string link)
         {
-            bool canExecute = LinkClickedCommand?.CanExecute(link) ?? false;
+            var canExecute = LinkClickedCommand?.CanExecute(link) ?? false;
 
             if (canExecute is false)
             {
@@ -128,20 +171,83 @@ namespace DarkHtmlViewer
             LinkClickedCommand?.Execute(link);
         }
 
+        private async void WebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+        {
+            if (_scrollToNext is not null)
+            {
+                await ScrollAsync(_scrollToNext);
+                _scrollToNext = null;
+            }
+
+            if (_textToFind is not null)
+            {
+                await SearchAsync(_textToFind);
+                _textToFind = null;
+            }
+        }
+
         #endregion
 
         #region Scroll to
 
-        private async Task ScrollAsync(string link)
+        private string _scrollToNext = null;
+
+        private async Task ScrollAsync(string elementId)
         {
-            string script = $"document.getElementById(\"{link}\").scrollIntoView();";
+            var script = $"document.getElementById(\"{elementId}\").scrollIntoView();";
             await webView2.ExecuteScriptAsync(script);
         }
 
-        private async Task LoadAndScrollAsync(LoadAndScrollData data)
+        private void ScrollOnNextLoad(string link)
         {
+            _scrollToNext = link;
+        }
+
+        private void LoadAndScroll(LoadAndScrollData data)
+        {
+            ScrollOnNextLoad(data.Link);
             LoadHtmlContent(data.HtmlContent);
-            await ScrollAsync(data.Link);
+        }
+
+        #endregion
+
+        #region Search
+
+        private string _textToFind = null;
+
+        private async Task SearchAsync(string text)
+        {
+            var clean = CleanSearchText(text);
+            if (string.IsNullOrEmpty(clean))
+            {
+                return;
+            }
+
+            //TODO try to find a way to highlight all occurances instead of just the first one
+            var script = $"window.find('{clean}');";
+            await webView2.ExecuteScriptAsync(script);
+        }
+
+        private string CleanSearchText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return null;
+            }
+
+            var clean = text.Replace("'", "");
+
+            if (string.IsNullOrEmpty(clean))
+            {
+                return null;
+            }
+
+            return clean;
+        }
+
+        private void SearchOnNextLoad(string text)
+        {
+            _textToFind = text;
         }
 
         #endregion
@@ -168,11 +274,21 @@ namespace DarkHtmlViewer
             webView2.CoreWebView2.Settings.IsWebMessageEnabled = false;
             webView2.CoreWebView2.Settings.IsZoomControlEnabled = false;
             webView2.CoreWebView2.Settings.IsBuiltInErrorPageEnabled = false;
+            webView2.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
+            webView2.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
+            webView2.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
+        }
 
-            //TODO implement this when the WebView2 v1.0.865 is out of prerelase
-            //webView2.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
-            //webView2.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
-            //webView2.CoreWebView2.Settings.IsPasswordAutofillEnabled = false;
+        #endregion
+
+        #region Cleanup
+
+        /// <summary>
+        /// Removes the temporary files created by the control
+        /// </summary>
+        public void Cleanup()
+        {
+            _fileManager.DeleteTempFile();
         }
 
         #endregion
