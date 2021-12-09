@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿notes<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
@@ -12,6 +12,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Divis.DarkHtmlViewer</PackageId>
+    <PackageReleaseNotes>more functionality and some tweaks</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
