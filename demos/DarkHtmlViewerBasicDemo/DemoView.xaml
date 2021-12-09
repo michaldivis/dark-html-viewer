@@ -54,13 +54,13 @@
                     Margin="5"
                     Padding="10,5,10,5"
                     Command="{Binding ElementName=darkHtmlViewer, Path=SearchCommand}"
-                    CommandParameter="duh"
+                    CommandParameter="tin"
                     Content="Search" />
                 <Button
                     Margin="5"
                     Padding="10,5,10,5"
                     Command="{Binding ElementName=darkHtmlViewer, Path=SearchOnNextLoadCommand}"
-                    CommandParameter="duh"
+                    CommandParameter="tin"
                     Content="Search on next load" />
                 <Button
                     Margin="5"
