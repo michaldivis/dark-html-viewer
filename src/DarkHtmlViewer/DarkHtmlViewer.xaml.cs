@@ -48,6 +48,7 @@ namespace DarkHtmlViewer
         #region Commands
 
         public ICommand LoadCommand => new DarkCommand<string>(LoadHtmlContent);
+        public ICommand LoadAndScrollCommand => new DarkCommand<LoadAndScrollData>(LoadAndScroll);
         public ICommand ScrollCommand => new DarkAsyncCommand<string>(ScrollAsync);
         public ICommand ScrollOnNextLoadCommand => new DarkCommand<string>(ScrollOnNextLoad);
         public ICommand SearchCommand => new DarkAsyncCommand<string>(SearchAsync);
@@ -200,6 +201,12 @@ namespace DarkHtmlViewer
         private void ScrollOnNextLoad(string link)
         {
             _scrollToNext = link;
+        }
+
+        private void LoadAndScroll(LoadAndScrollData data)
+        {
+            ScrollOnNextLoad(data.Link);
+            LoadHtmlContent(data.HtmlContent);
         }
 
         #endregion
