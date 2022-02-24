@@ -270,17 +270,20 @@ namespace DarkHtmlViewer
 
         private void DisableAllExtraFunctionality()
         {
+            webView2.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
             webView2.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-            webView2.CoreWebView2.Settings.AreDevToolsEnabled = false;
             webView2.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = false;
+            webView2.CoreWebView2.Settings.AreDevToolsEnabled = false;
+            
             webView2.CoreWebView2.Settings.IsScriptEnabled = false;
             webView2.CoreWebView2.Settings.IsStatusBarEnabled = false;
             webView2.CoreWebView2.Settings.IsWebMessageEnabled = false;
             webView2.CoreWebView2.Settings.IsZoomControlEnabled = false;
             webView2.CoreWebView2.Settings.IsBuiltInErrorPageEnabled = false;
-            webView2.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
+            
             webView2.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
             webView2.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
+            webView2.CoreWebView2.Settings.IsSwipeNavigationEnabled = false;
         }
 
         #endregion
