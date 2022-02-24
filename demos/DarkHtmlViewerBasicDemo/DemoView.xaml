@@ -47,12 +47,6 @@
                 <Button
                     Margin="5"
                     Padding="10,5,10,5"
-                    Command="{Binding ElementName=darkHtmlViewer, Path=LoadAndScrollCommand}"
-                    CommandParameter="{Binding TestLoadAndScrollData}"
-                    Content="Load and scroll" />
-                <Button
-                    Margin="5"
-                    Padding="10,5,10,5"
                     Command="{Binding ElementName=darkHtmlViewer, Path=SearchCommand}"
                     CommandParameter="tin"
                     Content="Search" />

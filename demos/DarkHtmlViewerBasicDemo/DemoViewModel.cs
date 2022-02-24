@@ -1,6 +1,5 @@
 ﻿using DarkHelpers;
 using DarkHelpers.Commands;
-using DarkHtmlViewer;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -14,23 +13,15 @@ namespace DarkHtmlViewerBasicDemo
 
         public DarkObservableCollection<DemoItem> Items { get; set; } = new DarkObservableCollection<DemoItem>();
 
-        public LoadAndScrollData TestLoadAndScrollData { get; set; }
-
         public DemoViewModel()
         {
-            IEnumerable<DemoItem> items = GenereateItems();
+            var items = GenereateItems();
             Items.AddRange(items);
-
-            TestLoadAndScrollData = new LoadAndScrollData
-            {
-                HtmlContent = Items.FirstOrDefault().Html,
-                Link = "footer"
-            };
         }
 
         private IEnumerable<DemoItem> GenereateItems()
         {
-            IEnumerable<DemoItem> items = Enumerable.Range(1, 5)
+            var items = Enumerable.Range(1, 5)
                 .Select(a => GenerateItem(a));
             return items;
         }
