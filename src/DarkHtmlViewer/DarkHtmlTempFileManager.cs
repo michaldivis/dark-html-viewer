@@ -6,19 +6,14 @@ namespace DarkHtmlViewer
 {
     internal class DarkHtmlTempFileManager
     {
-        private Guid _instanceId;
-        private string _tempFileDir;
-        private string _tempFilePath;
+        private readonly Guid _instanceId;
+        private readonly string _tempFileDir;
+        private readonly string _tempFilePath;
         private int _count = 0;
 
-        public DarkHtmlTempFileManager()
+        public DarkHtmlTempFileManager(Guid instanceId)
         {
-            Initialize();
-        }
-
-        private void Initialize()
-        {
-            _instanceId = Guid.NewGuid();
+            _instanceId = instanceId;
 
             _tempFileDir = GetTempFileDirPath();
             _tempFilePath = Path.Combine(_tempFileDir, $"{_instanceId}_tmp_{_count}.html");

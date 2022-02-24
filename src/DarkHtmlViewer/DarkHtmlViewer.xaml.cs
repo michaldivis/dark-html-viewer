@@ -6,11 +6,15 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DarkHtmlViewer
 {
     public partial class DarkHtmlViewer : UserControl
     {
+        private readonly ILogger<DarkHtmlViewer> _logger;
+        private readonly Guid _instanceId;
         private readonly DarkHtmlTempFileManager _fileManager;
 
         #region Bindable properties
@@ -48,7 +52,6 @@ namespace DarkHtmlViewer
         #region Commands
 
         public ICommand LoadCommand => new DarkCommand<string>(LoadHtmlContent);
-        public ICommand LoadAndScrollCommand => new DarkCommand<LoadAndScrollData>(LoadAndScroll);
         public ICommand ScrollCommand => new DarkAsyncCommand<string>(ScrollAsync);
         public ICommand ScrollOnNextLoadCommand => new DarkCommand<string>(ScrollOnNextLoad);
         public ICommand SearchCommand => new DarkAsyncCommand<string>(SearchAsync);
@@ -61,7 +64,12 @@ namespace DarkHtmlViewer
         {
             InitializeComponent();
 
-            _fileManager = new DarkHtmlTempFileManager();
+            _instanceId = Guid.NewGuid();
+            _fileManager = new DarkHtmlTempFileManager(_instanceId);
+
+            _logger = GetLogger();
+
+            _logger.LogDebug("DarkHtmlViewer-{InstanceId}: Initializing", _instanceId);
 
             InitializeWebView2();
         }
@@ -73,6 +81,11 @@ namespace DarkHtmlViewer
         private async void InitializeWebView2()
         {
             var initFilePath = _fileManager.GetFilePath();
+            _logger.LogDebug("DarkHtmlViewer-{InstanceId}: {Method}, init file: {InitFile}", _instanceId, nameof(InitializeWebView2), initFilePath);
+
+            webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
+            webView2.NavigationStarting += WebView2_NavigationStarting;
+            webView2.NavigationCompleted += WebView2_NavigationCompleted;
 
             webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
             webView2.NavigationStarting += WebView2_NavigationStarting;
@@ -110,6 +123,7 @@ namespace DarkHtmlViewer
 
         private void WebView2_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
+            _logger.LogDebug("DarkHtmlViewer-{InstanceId}: {Method}", _instanceId, nameof(WebView2_CoreWebView2InitializationCompleted));
             DisableAllExtraFunctionality();
         }
 
@@ -136,6 +150,7 @@ namespace DarkHtmlViewer
 
             _fileManager.Create(html);
             var htmlFilePath = _fileManager.GetFilePath();
+            _logger.LogDebug("DarkHtmlViewer-{InstanceId}: {Method}, file: {HtmlFilePath}", _instanceId, nameof(LoadHtmlContent), htmlFilePath);
             SetWebViewSource(htmlFilePath);
         }
 
@@ -192,21 +207,15 @@ namespace DarkHtmlViewer
 
         private string _scrollToNext = null;
 
-        private async Task ScrollAsync(string elementId)
+        private async Task ScrollAsync(string link)
         {
-            var script = $"document.getElementById(\"{elementId}\").scrollIntoView();";
+            var script = $"document.getElementById(\"{link}\").scrollIntoView();";
             await webView2.ExecuteScriptAsync(script);
         }
 
         private void ScrollOnNextLoad(string link)
         {
             _scrollToNext = link;
-        }
-
-        private void LoadAndScroll(LoadAndScrollData data)
-        {
-            ScrollOnNextLoad(data.Link);
-            LoadHtmlContent(data.HtmlContent);
         }
 
         #endregion
@@ -277,6 +286,27 @@ namespace DarkHtmlViewer
             webView2.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
             webView2.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
             webView2.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
+        }
+
+        #endregion
+
+        #region Logging
+
+        private static Func<ILogger<DarkHtmlViewer>> LoggerProvider;
+
+        public static void ConfigureLogger(Func<ILogger<DarkHtmlViewer>> loggerProvider)
+        {
+            LoggerProvider = loggerProvider;
+        }
+
+        private static ILogger<DarkHtmlViewer> GetLogger()
+        {
+            if(LoggerProvider is null)
+            {
+                return NullLogger<DarkHtmlViewer>.Instance;
+            }
+
+            return LoggerProvider.Invoke();
         }
 
         #endregion
