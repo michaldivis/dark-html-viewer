@@ -6,11 +6,17 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using DarkHelpers;
+using System.Linq;
 
 namespace DarkHtmlViewer
 {
     public partial class DarkHtmlViewer : UserControl
     {
+        private readonly ILogger<DarkHtmlViewer> _logger;
+        private readonly Guid _instanceId;
         private readonly DarkHtmlTempFileManager _fileManager;
 
         #region Bindable properties
@@ -48,7 +54,6 @@ namespace DarkHtmlViewer
         #region Commands
 
         public ICommand LoadCommand => new DarkCommand<string>(LoadHtmlContent);
-        public ICommand LoadAndScrollCommand => new DarkCommand<LoadAndScrollData>(LoadAndScroll);
         public ICommand ScrollCommand => new DarkAsyncCommand<string>(ScrollAsync);
         public ICommand ScrollOnNextLoadCommand => new DarkCommand<string>(ScrollOnNextLoad);
         public ICommand SearchCommand => new DarkAsyncCommand<string>(SearchAsync);
@@ -61,7 +66,13 @@ namespace DarkHtmlViewer
         {
             InitializeComponent();
 
-            _fileManager = new DarkHtmlTempFileManager();
+            _instanceId = Guid.NewGuid();
+
+            _fileManager = new DarkHtmlTempFileManager(_instanceId, GetLogger<DarkHtmlTempFileManager>());
+
+            _logger = GetLogger<DarkHtmlViewer>();
+
+            _logger.LogDebug("DarkHtmlViewer-{InstanceId}: Initializing", _instanceId);
 
             InitializeWebView2();
         }
@@ -73,6 +84,7 @@ namespace DarkHtmlViewer
         private async void InitializeWebView2()
         {
             var initFilePath = _fileManager.GetFilePath();
+            _logger.LogDebug("DarkHtmlViewer-{InstanceId}: {Method}, init file: {InitFile}", _instanceId, nameof(InitializeWebView2), initFilePath);
 
             webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
             webView2.NavigationStarting += WebView2_NavigationStarting;
@@ -110,7 +122,9 @@ namespace DarkHtmlViewer
 
         private void WebView2_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
+            _logger.LogDebug("DarkHtmlViewer-{InstanceId}: {Method}", _instanceId, nameof(WebView2_CoreWebView2InitializationCompleted));
             DisableAllExtraFunctionality();
+            SetupVirtualHostForAssets();
         }
 
         #endregion
@@ -136,6 +150,7 @@ namespace DarkHtmlViewer
 
             _fileManager.Create(html);
             var htmlFilePath = _fileManager.GetFilePath();
+            _logger.LogDebug("DarkHtmlViewer-{InstanceId}: {Method}, file: {HtmlFilePath}", _instanceId, nameof(LoadHtmlContent), htmlFilePath);
             SetWebViewSource(htmlFilePath);
         }
 
@@ -161,14 +176,7 @@ namespace DarkHtmlViewer
 
         private void TriggerLinkClicked(string link)
         {
-            var canExecute = LinkClickedCommand?.CanExecute(link) ?? false;
-
-            if (canExecute is false)
-            {
-                return;
-            }
-
-            LinkClickedCommand?.Execute(link);
+            LinkClickedCommand?.TryExecute(link);
         }
 
         private async void WebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
@@ -192,21 +200,15 @@ namespace DarkHtmlViewer
 
         private string _scrollToNext = null;
 
-        private async Task ScrollAsync(string elementId)
+        private async Task ScrollAsync(string link)
         {
-            var script = $"document.getElementById(\"{elementId}\").scrollIntoView();";
+            var script = $"document.getElementById(\"{link}\").scrollIntoView();";
             await webView2.ExecuteScriptAsync(script);
         }
 
         private void ScrollOnNextLoad(string link)
         {
             _scrollToNext = link;
-        }
-
-        private void LoadAndScroll(LoadAndScrollData data)
-        {
-            ScrollOnNextLoad(data.Link);
-            LoadHtmlContent(data.HtmlContent);
         }
 
         #endregion
@@ -262,21 +264,90 @@ namespace DarkHtmlViewer
 
         #endregion
 
+        #region Virtual host
+
+        private static VirtualHostNameToFolderMappingSettingsValidator _virtualAssetSettingsValidator;
+
+        private static VirtualHostNameToFolderMappingSettings VirtualAssetSettings;
+
+        /// <summary>
+        /// Configure the virtual host to folder mapping
+        /// </summary>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="VirtualHostNameToFolderMappingSettingsException"></exception>
+        public static void ConfigureVirtualHostNameToFolderMappingSettings(VirtualHostNameToFolderMappingSettings settings)
+        {
+            if (settings is null) throw new ArgumentNullException(nameof(settings));
+
+            var validator = _virtualAssetSettingsValidator ??= new VirtualHostNameToFolderMappingSettingsValidator();
+
+            var validationResult = validator.Validate(settings);
+
+            if (!validationResult.IsValid)
+            {
+                var firstError = validationResult.Errors.FirstOrDefault();
+                throw new VirtualHostNameToFolderMappingSettingsException(firstError.PropertyName, firstError.ErrorMessage);
+            }
+
+            VirtualAssetSettings = settings;
+        }
+
+        private void SetupVirtualHostForAssets()
+        {
+            if (VirtualAssetSettings is null)
+            {
+                return;
+            }
+
+            if(VirtualAssetSettings.IsEnabled is false)
+            {
+                return;
+            }
+
+            webView2.CoreWebView2.SetVirtualHostNameToFolderMapping(VirtualAssetSettings.Hostname, VirtualAssetSettings.FolderPath, VirtualAssetSettings.AccessKind);
+        }
+
+        #endregion
+
         #region Browser settings
 
         private void DisableAllExtraFunctionality()
         {
+            webView2.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
             webView2.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-            webView2.CoreWebView2.Settings.AreDevToolsEnabled = false;
             webView2.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = false;
+            webView2.CoreWebView2.Settings.AreDevToolsEnabled = false;
+            
             webView2.CoreWebView2.Settings.IsScriptEnabled = false;
             webView2.CoreWebView2.Settings.IsStatusBarEnabled = false;
             webView2.CoreWebView2.Settings.IsWebMessageEnabled = false;
             webView2.CoreWebView2.Settings.IsZoomControlEnabled = false;
             webView2.CoreWebView2.Settings.IsBuiltInErrorPageEnabled = false;
-            webView2.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
+            
             webView2.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
             webView2.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
+            webView2.CoreWebView2.Settings.IsSwipeNavigationEnabled = false;
+        }
+
+        #endregion
+
+        #region Logging
+
+        private static Func<ILoggerFactory> LoggerFactoryProvider;
+
+        public static void ConfigureLogger(Func<ILoggerFactory> loggerFactoryProvider)
+        {
+            LoggerFactoryProvider = loggerFactoryProvider;
+        }
+
+        private static ILogger<T> GetLogger<T>()
+        {
+            if(LoggerFactoryProvider is null)
+            {
+                return NullLogger<T>.Instance;
+            }
+
+            return LoggerFactoryProvider.Invoke().CreateLogger<T>();
         }
 
         #endregion
@@ -288,7 +359,7 @@ namespace DarkHtmlViewer
         /// </summary>
         public void Cleanup()
         {
-            _fileManager.DeleteTempFile();
+            _fileManager.TryDeleteCurrentTempFile();
         }
 
         #endregion
