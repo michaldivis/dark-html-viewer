@@ -8,7 +8,7 @@ namespace DarkHtmlViewer
     {
         private readonly Guid _instanceId;
         private readonly string _tempFileDir;
-        private readonly string _tempFilePath;
+        private string _tempFilePath;
         private int _count = 0;
 
         public DarkHtmlTempFileManager(Guid instanceId)
