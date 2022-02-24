@@ -3,7 +3,6 @@ using DarkHelpers.Commands;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -27,7 +26,7 @@ namespace DarkHtmlViewerBasicDemo
             LoadItemCommand = new DarkCommand<DemoItem>(LoadItem);
             HandleLinkClickCommand = new DarkCommand<string>(HandleLinkClick);
 
-            this.DataContext = this;
+            DataContext = this;
         }
 
         protected override void OnContentRendered(EventArgs e)
@@ -81,14 +80,12 @@ namespace DarkHtmlViewerBasicDemo
                 _ => null
             };
 
-            var appLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            var htmlResDir = Path.Combine(Path.GetDirectoryName(appLocation), "Files");
-            var preparedHtml = rawHtml.Replace("{htmlResDir}", $"{htmlResDir}\\");
+            var preparedHtml = rawHtml.Replace("{htmlResDir}", "https://darkassets.local/");
 
             return preparedHtml;
         }
 
-        private readonly static Regex ItemCodeRegex = new Regex(@"(?<itemCode>[a-zA-Z0-9]+)-.+");
+        private static readonly Regex ItemCodeRegex = new Regex(@"(?<itemCode>[a-zA-Z0-9]+)-.+");
 
         private void HandleLinkClick(string link)
         {
@@ -105,7 +102,7 @@ namespace DarkHtmlViewerBasicDemo
                 return;
             }
 
-            if(item == _currentItem)
+            if (item == _currentItem)
             {
                 darkHtmlViewer.ScrollCommand.TryExecute(link);
                 return;

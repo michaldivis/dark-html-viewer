@@ -9,6 +9,7 @@ using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using DarkHelpers;
+using System.Linq;
 
 namespace DarkHtmlViewer
 {
@@ -123,6 +124,7 @@ namespace DarkHtmlViewer
         {
             _logger.LogDebug("DarkHtmlViewer-{InstanceId}: {Method}", _instanceId, nameof(WebView2_CoreWebView2InitializationCompleted));
             DisableAllExtraFunctionality();
+            SetupVirtualHostForAssets();
         }
 
         #endregion
@@ -258,6 +260,51 @@ namespace DarkHtmlViewer
         {
             var script = "window.print();";
             await webView2.ExecuteScriptAsync(script);
+        }
+
+        #endregion
+
+        #region Virtual host
+
+        private static VirtualHostNameToFolderMappingSettingsValidator _virtualAssetSettingsValidator;
+
+        private static VirtualHostNameToFolderMappingSettings VirtualAssetSettings;
+
+        /// <summary>
+        /// Configure the virtual host to folder mapping
+        /// </summary>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="VirtualHostNameToFolderMappingSettingsException"></exception>
+        public static void ConfigureVirtualHostNameToFolderMappingSettings(VirtualHostNameToFolderMappingSettings settings)
+        {
+            if (settings is null) throw new ArgumentNullException(nameof(settings));
+
+            var validator = _virtualAssetSettingsValidator ??= new VirtualHostNameToFolderMappingSettingsValidator();
+
+            var validationResult = validator.Validate(settings);
+
+            if (!validationResult.IsValid)
+            {
+                var firstError = validationResult.Errors.FirstOrDefault();
+                throw new VirtualHostNameToFolderMappingSettingsException(firstError.PropertyName, firstError.ErrorMessage);
+            }
+
+            VirtualAssetSettings = settings;
+        }
+
+        private void SetupVirtualHostForAssets()
+        {
+            if (VirtualAssetSettings is null)
+            {
+                return;
+            }
+
+            if(VirtualAssetSettings.IsEnabled is false)
+            {
+                return;
+            }
+
+            webView2.CoreWebView2.SetVirtualHostNameToFolderMapping(VirtualAssetSettings.Hostname, VirtualAssetSettings.FolderPath, VirtualAssetSettings.AccessKind);
         }
 
         #endregion
