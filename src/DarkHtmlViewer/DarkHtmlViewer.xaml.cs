@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using DarkHelpers;
 
 namespace DarkHtmlViewer
 {
@@ -65,9 +66,10 @@ namespace DarkHtmlViewer
             InitializeComponent();
 
             _instanceId = Guid.NewGuid();
-            _fileManager = new DarkHtmlTempFileManager(_instanceId);
 
-            _logger = GetLogger();
+            _fileManager = new DarkHtmlTempFileManager(_instanceId, GetLogger<DarkHtmlTempFileManager>());
+
+            _logger = GetLogger<DarkHtmlViewer>();
 
             _logger.LogDebug("DarkHtmlViewer-{InstanceId}: Initializing", _instanceId);
 
@@ -176,14 +178,7 @@ namespace DarkHtmlViewer
 
         private void TriggerLinkClicked(string link)
         {
-            var canExecute = LinkClickedCommand?.CanExecute(link) ?? false;
-
-            if (canExecute is false)
-            {
-                return;
-            }
-
-            LinkClickedCommand?.Execute(link);
+            LinkClickedCommand?.TryExecute(link);
         }
 
         private async void WebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
@@ -292,21 +287,21 @@ namespace DarkHtmlViewer
 
         #region Logging
 
-        private static Func<ILogger<DarkHtmlViewer>> LoggerProvider;
+        private static Func<ILoggerFactory> LoggerFactoryProvider;
 
-        public static void ConfigureLogger(Func<ILogger<DarkHtmlViewer>> loggerProvider)
+        public static void ConfigureLogger(Func<ILoggerFactory> loggerFactoryProvider)
         {
-            LoggerProvider = loggerProvider;
+            LoggerFactoryProvider = loggerFactoryProvider;
         }
 
-        private static ILogger<DarkHtmlViewer> GetLogger()
+        private static ILogger<T> GetLogger<T>()
         {
-            if(LoggerProvider is null)
+            if(LoggerFactoryProvider is null)
             {
-                return NullLogger<DarkHtmlViewer>.Instance;
+                return NullLogger<T>.Instance;
             }
 
-            return LoggerProvider.Invoke();
+            return LoggerFactoryProvider.Invoke().CreateLogger<T>();
         }
 
         #endregion
@@ -318,7 +313,7 @@ namespace DarkHtmlViewer
         /// </summary>
         public void Cleanup()
         {
-            _fileManager.DeleteTempFile();
+            _fileManager.TryDeleteCurrentTempFile();
         }
 
         #endregion

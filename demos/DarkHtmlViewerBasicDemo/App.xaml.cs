@@ -10,7 +10,7 @@ namespace DarkHtmlViewerBasicDemo
             base.OnStartup(e);
 
             //configure logger
-            DarkHtmlViewer.DarkHtmlViewer.ConfigureLogger(() => NullLogger<DarkHtmlViewer.DarkHtmlViewer>.Instance);
+            DarkHtmlViewer.DarkHtmlViewer.ConfigureLogger(() => NullLoggerFactory.Instance);
         }
     }
 }

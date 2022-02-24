@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -7,35 +8,83 @@ namespace DarkHtmlViewer
     internal class DarkHtmlTempFileManager
     {
         private readonly Guid _instanceId;
+        private readonly ILogger<DarkHtmlTempFileManager> _logger;
+
+        private const string EmptyFileText = "<p></p>";
+
+        private readonly Regex _isTempFilePathRegex;
         private readonly string _tempFileDir;
+
         private string _tempFilePath;
         private int _count = 0;
 
-        public DarkHtmlTempFileManager(Guid instanceId)
+        public DarkHtmlTempFileManager(Guid instanceId, ILogger<DarkHtmlTempFileManager> logger)
         {
             _instanceId = instanceId;
+            _logger = logger;
 
             _tempFileDir = GetTempFileDirPath();
-            _tempFilePath = Path.Combine(_tempFileDir, $"{_instanceId}_tmp_{_count}.html");
+            _tempFilePath = CreateNewTempFilePath();
 
-            Create("<p></p>");
+            _isTempFilePathRegex = new Regex(Regex.Escape(_instanceId.ToString()) + @"_tmp_\d+\.html");
+
+            Create(EmptyFileText);
         }
 
         public void Create(string html)
         {
-            Directory.CreateDirectory(_tempFileDir);
+            try
+            {
+                Directory.CreateDirectory(_tempFileDir);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Creating temp files directory failed, path: {TempFileDir}", _tempFileDir);
+                return;
+            }
 
-            DeleteTempFile();
+            TryDeleteCurrentTempFile();
 
-            _count++;
-            _tempFilePath = Path.Combine(_tempFileDir, $"{_instanceId}_tmp_{_count}.html");
+            _tempFilePath = CreateNewTempFilePath();
 
-            File.WriteAllText(_tempFilePath, html);
+            TryWriteFileText(_tempFilePath, html);
         }
 
-        public void DeleteTempFile()
+        private string CreateNewTempFilePath()
         {
-            File.Delete(_tempFilePath);
+            string tempFilePath;
+
+            do
+            {
+                tempFilePath = Path.Combine(_tempFileDir, $"{_instanceId}_tmp_{_count}.html");
+                _count++;
+            } while (File.Exists(tempFilePath));
+
+            return tempFilePath;
+        }
+
+        public void TryDeleteCurrentTempFile()
+        {
+            try 
+	        {
+                File.Delete(_tempFilePath);
+            }
+	        catch (Exception ex)
+	        {
+                _logger.LogError(ex, "Deleting a temp HTML file failed");
+	        }   
+        }
+
+        public void TryWriteFileText(string filePath, string text)
+        {
+            try
+            {
+                File.WriteAllText(filePath, text);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Writing text to file failed");
+            }
         }
 
         public string GetFilePath()
@@ -55,9 +104,9 @@ namespace DarkHtmlViewer
                 return false;
             }
 
-            var pattern = _instanceId + @"_tmp_\d+\.html";
-            var match = Regex.Match(text, pattern);
-            return match.Success;
+            var isMatch = _isTempFilePathRegex.IsMatch(text);
+
+            return isMatch;
         }
     }
 }
