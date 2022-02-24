@@ -89,10 +89,6 @@ namespace DarkHtmlViewer
             webView2.NavigationStarting += WebView2_NavigationStarting;
             webView2.NavigationCompleted += WebView2_NavigationCompleted;
 
-            webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
-            webView2.NavigationStarting += WebView2_NavigationStarting;
-            webView2.NavigationCompleted += WebView2_NavigationCompleted;
-
             var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
             var dataFolder = Path.Combine(appDataDir, "webView2_env");
             var env = await CoreWebView2Environment.CreateAsync(null, dataFolder);
