@@ -36,26 +36,26 @@
                     Margin="5"
                     Padding="10,5,10,5"
                     Command="{Binding ElementName=darkHtmlViewer, Path=ScrollCommand}"
-                    CommandParameter="footer"
-                    Content="Scroll to footer" />
+                    CommandParameter="section2"
+                    Content="Scroll to NFTs" />
                 <Button
                     Margin="5"
                     Padding="10,5,10,5"
                     Command="{Binding ElementName=darkHtmlViewer, Path=ScrollOnNextLoadCommand}"
-                    CommandParameter="footer"
-                    Content="Scroll to footer on next load" />
+                    CommandParameter="section2"
+                    Content="Scroll to NFTs on next load" />
                 <Button
                     Margin="5"
                     Padding="10,5,10,5"
                     Command="{Binding ElementName=darkHtmlViewer, Path=SearchCommand}"
-                    CommandParameter="tin"
-                    Content="Search" />
+                    CommandParameter="hell"
+                    Content="Search for 'hell'" />
                 <Button
                     Margin="5"
                     Padding="10,5,10,5"
                     Command="{Binding ElementName=darkHtmlViewer, Path=SearchOnNextLoadCommand}"
                     CommandParameter="tin"
-                    Content="Search on next load" />
+                    Content="Search for 'hell' on next load" />
                 <Button
                     Margin="5"
                     Padding="10,5,10,5"
