@@ -53,6 +53,21 @@
                     Padding="10,5,10,5"
                     Command="{Binding ElementName=darkHtmlViewer, Path=PrintCommand}"
                     Content="Print" />
+
+                <Slider
+                    x:Name="sliderZoom"
+                    MinWidth="100"
+                    Margin="5"
+                    Padding="10,5,10,5"
+                    Maximum="5"
+                    Minimum="0.1"
+                    Value="1" />
+                <Button
+                    Margin="5"
+                    Padding="10,5,10,5"
+                    Command="{Binding ElementName=darkHtmlViewer, Path=ZoomCommand}"
+                    CommandParameter="{Binding ElementName=sliderZoom, Path=Value}"
+                    Content="Set Zoom" />
             </WrapPanel>
         </Border>
 

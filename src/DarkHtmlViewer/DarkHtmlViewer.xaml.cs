@@ -53,12 +53,13 @@ namespace DarkHtmlViewer
 
         #region Commands
 
-        public ICommand LoadCommand => new DarkCommand<string>(LoadHtmlContent);
+        public ICommand LoadCommand => new DarkCommand<string>(Load);
         public ICommand ScrollCommand => new DarkAsyncCommand<string>(ScrollAsync);
         public ICommand ScrollOnNextLoadCommand => new DarkCommand<string>(ScrollOnNextLoad);
         public ICommand SearchCommand => new DarkAsyncCommand<string>(SearchAsync);
         public ICommand SearchOnNextLoadCommand => new DarkCommand<string>(SearchOnNextLoad);
         public ICommand PrintCommand => new DarkAsyncCommand(PrintAsync);
+        public ICommand ZoomCommand => new DarkCommand<double>(Zoom);
 
         #endregion
 
@@ -117,7 +118,7 @@ namespace DarkHtmlViewer
                 return;
             }
 
-            LoadHtmlContent(_loadAfterInitialization);
+            Load(_loadAfterInitialization);
         }
 
         private void WebView2_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
@@ -136,11 +137,14 @@ namespace DarkHtmlViewer
             var viewer = sender as DarkHtmlViewer;
             if (viewer != null)
             {
-                viewer.LoadHtmlContent(e.NewValue?.ToString());
+                viewer.Load(e.NewValue?.ToString());
             }
         }
 
-        private void LoadHtmlContent(string html)
+        /// <summary>
+        /// Loads an HTML string
+        /// </summary>
+        public void Load(string html)
         {
             if (_initialized is false)
             {
@@ -150,7 +154,7 @@ namespace DarkHtmlViewer
 
             _fileManager.Create(html);
             var htmlFilePath = _fileManager.GetFilePath();
-            _logger.LogDebug("DarkHtmlViewer-{InstanceId}: {Method}, file: {HtmlFilePath}", _instanceId, nameof(LoadHtmlContent), htmlFilePath);
+            _logger.LogDebug("DarkHtmlViewer-{InstanceId}: {Method}, file: {HtmlFilePath}", _instanceId, nameof(Load), htmlFilePath);
             SetWebViewSource(htmlFilePath);
         }
 
@@ -200,15 +204,21 @@ namespace DarkHtmlViewer
 
         private string _scrollToNext = null;
 
-        private async Task ScrollAsync(string link)
+        /// <summary>
+        /// Tries to scroll to an element by ID
+        /// </summary>
+        public async Task ScrollAsync(string elementId)
         {
-            var script = $"document.getElementById(\"{link}\").scrollIntoView();";
+            var script = $"document.getElementById(\"{elementId}\").scrollIntoView();";
             await webView2.ExecuteScriptAsync(script);
         }
 
-        private void ScrollOnNextLoad(string link)
+        /// <summary>
+        /// Sets the elementId to be scrolled to next time HTML content is loaded
+        /// </summary>
+        public void ScrollOnNextLoad(string elementId)
         {
-            _scrollToNext = link;
+            _scrollToNext = elementId;
         }
 
         #endregion
@@ -217,7 +227,10 @@ namespace DarkHtmlViewer
 
         private string _textToFind = null;
 
-        private async Task SearchAsync(string text)
+        /// <summary>
+        /// Finds text in the loaded HTML
+        /// </summary>
+        public async Task SearchAsync(string text)
         {
             var clean = CleanSearchText(text);
             if (string.IsNullOrEmpty(clean))
@@ -247,7 +260,10 @@ namespace DarkHtmlViewer
             return clean;
         }
 
-        private void SearchOnNextLoad(string text)
+        /// <summary>
+        /// Sets the text to be searched for next time HTML content is loaded
+        /// </summary>
+        public void SearchOnNextLoad(string text)
         {
             _textToFind = text;
         }
@@ -256,10 +272,26 @@ namespace DarkHtmlViewer
 
         #region Printing
 
-        private async Task PrintAsync()
+        /// <summary>
+        /// Invokes the browser print dialog
+        /// </summary>
+        public async Task PrintAsync()
         {
             var script = "window.print();";
             await webView2.ExecuteScriptAsync(script);
+        }
+
+        #endregion
+
+        #region Zoom
+
+        /// <summary>
+        /// Sets the zoom factor of the browser
+        /// </summary>
+        /// <param name="zoom">Zoom factor, 1.0 is default</param>
+        public void Zoom(double zoom)
+        {
+            webView2.ZoomFactor = zoom;
         }
 
         #endregion
