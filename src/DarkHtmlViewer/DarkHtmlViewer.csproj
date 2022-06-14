@@ -12,7 +12,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Divis.DarkHtmlViewer</PackageId>
-	<PackageReleaseNotes></PackageReleaseNotes>
+	<PackageReleaseNotes>See https://github.com/michaldivis/DarkHtmlViewer/releases</PackageReleaseNotes>
 	<LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
