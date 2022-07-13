@@ -1,21 +1,22 @@
-﻿using DarkHelpers.Commands;
+﻿using DarkHelpers;
+using DarkHelpers.Commands;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.Wpf;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using DarkHelpers;
-using System.Linq;
 
 namespace DarkHtmlViewer
 {
-    public partial class DarkHtmlViewer : UserControl
+    public partial class HtmlViewer : UserControl
     {
-        private readonly ILogger<DarkHtmlViewer> _logger;
+        private readonly ILogger<HtmlViewer> _logger;
         private readonly Guid _instanceId;
         private readonly DarkHtmlTempFileManager _fileManager;
 
@@ -31,7 +32,7 @@ namespace DarkHtmlViewer
             DependencyProperty.Register(
                 nameof(HtmlContent),
                 typeof(string),
-                typeof(DarkHtmlViewer),
+                typeof(HtmlViewer),
                 new PropertyMetadata(
                     string.Empty,
                     new PropertyChangedCallback(OnHtmlContentCallBack)));
@@ -46,7 +47,7 @@ namespace DarkHtmlViewer
             DependencyProperty.Register(
                 nameof(LinkClickedCommand),
                 typeof(ICommand),
-                typeof(DarkHtmlViewer),
+                typeof(HtmlViewer),
                 new PropertyMetadata(null));
 
         #endregion
@@ -63,7 +64,7 @@ namespace DarkHtmlViewer
 
         #endregion
 
-        public DarkHtmlViewer()
+        public HtmlViewer()
         {
             InitializeComponent();
 
@@ -71,7 +72,7 @@ namespace DarkHtmlViewer
 
             _fileManager = new DarkHtmlTempFileManager(_instanceId, GetLogger<DarkHtmlTempFileManager>());
 
-            _logger = GetLogger<DarkHtmlViewer>();
+            _logger = GetLogger<HtmlViewer>();
 
             _logger.LogDebug("DarkHtmlViewer-{InstanceId}: Initializing", _instanceId);
 
@@ -124,8 +125,8 @@ namespace DarkHtmlViewer
         private void WebView2_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
             _logger.LogDebug("DarkHtmlViewer-{InstanceId}: {Method}", _instanceId, nameof(WebView2_CoreWebView2InitializationCompleted));
-            DisableAllExtraFunctionality();
-            SetupVirtualHostForAssets();
+            DisableAllExtraFunctionality(webView2.CoreWebView2.Settings);
+            SetupVirtualHostForAssets(webView2);
         }
 
         #endregion
@@ -134,7 +135,7 @@ namespace DarkHtmlViewer
 
         private static void OnHtmlContentCallBack(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            var viewer = sender as DarkHtmlViewer;
+            var viewer = sender as HtmlViewer;
             if (viewer != null)
             {
                 viewer.Load(e.NewValue?.ToString());
@@ -309,7 +310,10 @@ namespace DarkHtmlViewer
         /// <exception cref="VirtualHostNameToFolderMappingSettingsException"></exception>
         public static void ConfigureVirtualHostNameToFolderMappingSettings(VirtualHostNameToFolderMappingSettings settings)
         {
-            if (settings is null) throw new ArgumentNullException(nameof(settings));
+            if (settings is null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
 
             var validator = _virtualAssetSettingsValidator ??= new VirtualHostNameToFolderMappingSettingsValidator();
 
@@ -324,41 +328,41 @@ namespace DarkHtmlViewer
             VirtualAssetSettings = settings;
         }
 
-        private void SetupVirtualHostForAssets()
+        private static void SetupVirtualHostForAssets(WebView2 webView)
         {
             if (VirtualAssetSettings is null)
             {
                 return;
             }
 
-            if(VirtualAssetSettings.IsEnabled is false)
+            if (VirtualAssetSettings.IsEnabled is false)
             {
                 return;
             }
 
-            webView2.CoreWebView2.SetVirtualHostNameToFolderMapping(VirtualAssetSettings.Hostname, VirtualAssetSettings.FolderPath, VirtualAssetSettings.AccessKind);
+            webView.CoreWebView2.SetVirtualHostNameToFolderMapping(VirtualAssetSettings.Hostname, VirtualAssetSettings.FolderPath, VirtualAssetSettings.AccessKind);
         }
 
         #endregion
 
         #region Browser settings
 
-        private void DisableAllExtraFunctionality()
+        private static void DisableAllExtraFunctionality(CoreWebView2Settings settings)
         {
-            webView2.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
-            webView2.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-            webView2.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = false;
-            webView2.CoreWebView2.Settings.AreDevToolsEnabled = false;
-            
-            webView2.CoreWebView2.Settings.IsScriptEnabled = false;
-            webView2.CoreWebView2.Settings.IsStatusBarEnabled = false;
-            webView2.CoreWebView2.Settings.IsWebMessageEnabled = false;
-            webView2.CoreWebView2.Settings.IsZoomControlEnabled = false;
-            webView2.CoreWebView2.Settings.IsBuiltInErrorPageEnabled = false;
-            
-            webView2.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
-            webView2.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
-            webView2.CoreWebView2.Settings.IsSwipeNavigationEnabled = false;
+            settings.AreBrowserAcceleratorKeysEnabled = true;
+            settings.AreDefaultContextMenusEnabled = false;
+            settings.AreDefaultScriptDialogsEnabled = false;
+            settings.AreDevToolsEnabled = false;
+
+            settings.IsScriptEnabled = false;
+            settings.IsStatusBarEnabled = false;
+            settings.IsWebMessageEnabled = false;
+            settings.IsZoomControlEnabled = false;
+            settings.IsBuiltInErrorPageEnabled = false;
+
+            settings.IsGeneralAutofillEnabled = false;
+            settings.IsPasswordAutosaveEnabled = false;
+            settings.IsSwipeNavigationEnabled = false;
         }
 
         #endregion
@@ -374,7 +378,7 @@ namespace DarkHtmlViewer
 
         private static ILogger<T> GetLogger<T>()
         {
-            if(LoggerFactoryProvider is null)
+            if (LoggerFactoryProvider is null)
             {
                 return NullLogger<T>.Instance;
             }
@@ -392,6 +396,53 @@ namespace DarkHtmlViewer
         public void Cleanup()
         {
             _fileManager.TryDeleteCurrentTempFile();
+        }
+
+        #endregion
+
+        #region Utils
+
+        /// <summary>
+        /// <para>Check installed runtime compatibility - basic</para>
+        /// <para>Tries to retreive the available browser version</para>
+        /// <para>Throws if there's a problem</para>
+        /// </summary>
+        /// <exception cref="WebView2RuntimeNotFoundException" />
+        public static void CheckBasicCompatibility()
+        {
+            _ = CoreWebView2Environment.GetAvailableBrowserVersionString();
+        }
+
+        /// <summary>
+        /// <para>Check installed runtime compatibility - full</para>
+        /// <para>Tries to create an instance of a <see cref="WebView2"/> with valid <see cref="CoreWebView2Environment"/>, <see cref="CoreWebView2Settings"/> and <see cref="VirtualHostNameToFolderMappingSettings"/> (if enabled)</para>
+        /// <para>Throws if there's a problem</para>
+        /// </summary>
+        /// <exception cref="Exception" />
+        /// <exception cref="ArgumentException" />
+        /// <exception cref="InvalidOperationException" />
+        /// <exception cref="ObjectDisposedException" />
+        /// <exception cref="WebView2RuntimeNotFoundException" />
+        public static async Task CheckFullCompatibilityAsync()
+        {
+            try
+            {
+                var webView = new WebView2()
+                {
+                    Source = new Uri("https://www.google.com")
+                };
+
+                var env = await CoreWebView2Environment.CreateAsync().ConfigureAwait(false);
+
+                await webView.EnsureCoreWebView2Async().ConfigureAwait(false);
+
+                DisableAllExtraFunctionality(webView.CoreWebView2.Settings);
+                SetupVirtualHostForAssets(webView);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         #endregion

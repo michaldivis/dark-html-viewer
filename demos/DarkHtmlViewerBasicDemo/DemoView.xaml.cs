@@ -8,116 +8,115 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
 
-namespace DarkHtmlViewerBasicDemo
+namespace DarkHtmlViewerBasicDemo;
+
+public partial class DemoView : Window
 {
-    public partial class DemoView : Window
+    private DemoItem _currentItem;
+
+    public ICommand LoadItemCommand { get; }
+    public ICommand HandleLinkClickCommand { get; }
+
+    public DarkObservableCollection<DemoItem> Items { get; } = new DarkObservableCollection<DemoItem>();
+
+    public DemoView()
     {
-        private DemoItem _currentItem;
+        InitializeComponent();
 
-        public ICommand LoadItemCommand { get; }
-        public ICommand HandleLinkClickCommand { get; }
+        LoadItemCommand = new DarkCommand<DemoItem>(LoadItem);
+        HandleLinkClickCommand = new DarkCommand<string>(HandleLinkClick);
 
-        public DarkObservableCollection<DemoItem> Items { get; } = new DarkObservableCollection<DemoItem>();
+        DataContext = this;
+    }
 
-        public DemoView()
+    protected override void OnContentRendered(EventArgs e)
+    {
+        base.OnContentRendered(e);
+
+        var items = GenereateItems();
+        Items.AddRange(items);
+
+        var firstItem = items.First();
+        LoadItem(firstItem);
+    }
+
+    private void LoadItem(DemoItem item)
+    {
+        _currentItem = item;
+        htmlViewer.LoadCommand.TryExecute(item.Html);
+    }
+
+    private IEnumerable<DemoItem> GenereateItems()
+    {
+        return new List<DemoItem>
         {
-            InitializeComponent();
-
-            LoadItemCommand = new DarkCommand<DemoItem>(LoadItem);
-            HandleLinkClickCommand = new DarkCommand<string>(HandleLinkClick);
-
-            DataContext = this;
-        }
-
-        protected override void OnContentRendered(EventArgs e)
-        {
-            base.OnContentRendered(e);
-
-            var items = GenereateItems();
-            Items.AddRange(items);
-
-            var firstItem = items.First();
-            LoadItem(firstItem);
-        }
-
-        private void LoadItem(DemoItem item)
-        {
-            _currentItem = item;
-            darkHtmlViewer.LoadCommand.TryExecute(item.Html);
-        }
-
-        private IEnumerable<DemoItem> GenereateItems()
-        {
-            return new List<DemoItem>
+            new DemoItem
             {
-                new DemoItem
-                {
-                    Title = "Home",
-                    ItemCode = "home",
-                    Html = LoadHtml("home")
-                },
-                new DemoItem
-                {
-                    Title = "Super cool looking code!",
-                    ItemCode = "page1",
-                    Html = LoadHtml("page1")
-                },new DemoItem
-                {
-                    Title = "What the hell are NFTs?",
-                    ItemCode = "page2",
-                    Html = LoadHtml("page2")
-                },
-            };
-        }
+                Title = "Home",
+                ItemCode = "home",
+                Html = LoadHtml("home")
+            },
+            new DemoItem
+            {
+                Title = "Super cool looking code!",
+                ItemCode = "page1",
+                Html = LoadHtml("page1")
+            },new DemoItem
+            {
+                Title = "What the hell are NFTs?",
+                ItemCode = "page2",
+                Html = LoadHtml("page2")
+            },
+        };
+    }
 
-        private string LoadHtml(string itemCode)
+    private string LoadHtml(string itemCode)
+    {
+        var rawHtml = itemCode switch
         {
-            var rawHtml = itemCode switch
-            {
-                "home" => Properties.Resources.home,
-                "page1" => Properties.Resources.page1,
-                "page2" => Properties.Resources.page2,
-                _ => null
-            };
+            "home" => Properties.Resources.home,
+            "page1" => Properties.Resources.page1,
+            "page2" => Properties.Resources.page2,
+            _ => null
+        };
 
-            var preparedHtml = rawHtml.Replace("{htmlResDir}", "https://darkassets.local/");
+        var preparedHtml = rawHtml.Replace("{htmlResDir}", "https://darkassets.local/");
 
-            return preparedHtml;
-        }
+        return preparedHtml;
+    }
 
-        private static readonly Regex ItemCodeRegex = new Regex(@"(?<itemCode>[a-zA-Z0-9]+)-.+");
+    private static readonly Regex ItemCodeRegex = new Regex(@"(?<itemCode>[a-zA-Z0-9]+)-.+");
 
-        private void HandleLinkClick(string link)
+    private void HandleLinkClick(string link)
+    {
+        var itemCodeMatch = ItemCodeRegex.Match(link);
+        if (!itemCodeMatch.Success)
         {
-            var itemCodeMatch = ItemCodeRegex.Match(link);
-            if (!itemCodeMatch.Success)
-            {
-                return;
-            }
-
-            var itemCode = itemCodeMatch.Groups["itemCode"].Value;
-            var item = Items.FirstOrDefault(a => a.ItemCode == itemCode);
-            if (item is null)
-            {
-                return;
-            }
-
-            if (item == _currentItem)
-            {
-                darkHtmlViewer.ScrollCommand.TryExecute(link);
-                return;
-            }
-
-            darkHtmlViewer.ScrollOnNextLoadCommand.TryExecute(link);
-
-            LoadItem(item);
+            return;
         }
 
-        protected override void OnClosing(CancelEventArgs e)
+        var itemCode = itemCodeMatch.Groups["itemCode"].Value;
+        var item = Items.FirstOrDefault(a => a.ItemCode == itemCode);
+        if (item is null)
         {
-            base.OnClosing(e);
-
-            darkHtmlViewer.Cleanup();
+            return;
         }
+
+        if (item == _currentItem)
+        {
+            htmlViewer.ScrollCommand.TryExecute(link);
+            return;
+        }
+
+        htmlViewer.ScrollOnNextLoadCommand.TryExecute(link);
+
+        LoadItem(item);
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        base.OnClosing(e);
+
+        htmlViewer.Cleanup();
     }
 }

@@ -13,20 +13,20 @@ Add the namespace to your XAML
 xmlns:darkhtmlviewer="clr-namespace:DarkHtmlViewer;assembly=DarkHtmlViewer"
 ```
 
-And use the `DarkHtmlViewer` control
+And use the `HtmlViewer` control
 ```XAML
-<darkhtmlviewer:DarkHtmlViewer x:Name="darkHtmlViewer" />
+<darkhtmlviewer:HtmlViewer x:Name="htmlViewer" />
 ```
 
 ### Loading HTML content
 To load content into the viewer, bind an HTML string to it's `HtmlContent` property
 ```XAML
-<darkhtmlviewer:DarkHtmlViewer x:Name="darkHtmlViewer" HtmlContent="{Binding MyHtmlString}" />
+<darkhtmlviewer:HtmlViewer x:Name="htmlViewer" HtmlContent="{Binding MyHtmlString}" />
 ```
 or use the `LoadCommand` and pass the HTML string as  the `CommandParameter`
 ```XAML
 <Button
-    Command="{Binding ElementName=darkHtmlViewer, Path=LoadCommand}"
+    Command="{Binding ElementName=htmlViewer, Path=LoadCommand}"
     CommandParameter="{Binding MyHtmlString}"
     Content="Load HTML using a command" />
 ```
@@ -36,8 +36,8 @@ Whenever a link is clicked in the loaded HTML file, the control fires the `LinkC
 
 View.cs
 ```XAML
-<darkhtmlviewer:DarkHtmlViewer
-    x:Name="darkHtmlViewer"
+<darkhtmlviewer:HtmlViewer
+    x:Name="htmlViewer"
     LinkClickedCommand="{Binding MyLinkClickedCommand}" />
 ```
 
@@ -57,7 +57,7 @@ To scroll to a specific element id, you have several options.
 `ScrollCommand`: tries to scroll to a specific element in the currently loaded HTML file
 ```XAML
 <Button
-    Command="{Binding ElementName=darkHtmlViewer, Path=ScrollCommand}"
+    Command="{Binding ElementName=htmlViewer, Path=ScrollCommand}"
     CommandParameter="elementId"
     Content="Scroll to elementId" />
 ```
@@ -65,7 +65,7 @@ To scroll to a specific element id, you have several options.
 `ScrollOnNextLoadCommand`: will try to scroll to a specific element in the next loaded HTML file
 ```XAML
 <Button
-    Command="{Binding ElementName=darkHtmlViewer, Path=ScrollOnNextLoadCommand}"
+    Command="{Binding ElementName=htmlViewer, Path=ScrollOnNextLoadCommand}"
     CommandParameter="elementId"
     Content="Scroll to elementId on next load" />
 ```
@@ -75,7 +75,7 @@ To scroll to a specific element id, you have several options.
 `SearchCommand`: finds a search term on the current page
 ```XAML
 <Button
-    Command="{Binding ElementName=darkHtmlViewer, Path=SearchCommand}"
+    Command="{Binding ElementName=htmlViewer, Path=SearchCommand}"
     CommandParameter="search text"
     Content="Search for text" />
 ```
@@ -83,7 +83,7 @@ To scroll to a specific element id, you have several options.
 `SearchOnNextLoadCommand`: finds a search term in the next loaded HTML file
 ```XAML
 <Button
-    Command="{Binding ElementName=darkHtmlViewer, Path=SearchOnNextLoadCommand}"
+    Command="{Binding ElementName=htmlViewer, Path=SearchOnNextLoadCommand}"
     CommandParameter="search text"
     Content="Search for text on next load" />
 ```
@@ -93,14 +93,16 @@ To scroll to a specific element id, you have several options.
 The `PrintCommand` can be used to bring up the default print dialog window.
 ```XAML
 <Button
-    Command="{Binding ElementName=darkHtmlViewer, Path=PrintCommand}"
+    Command="{Binding ElementName=htmlViewer, Path=PrintCommand}"
     Content="Show print dialog" />
 ```
 
 ### Logging
 Enable logging for the control by configuring an `ILoggerFactory` provider like so:
 ```csharp
-DarkHtmlViewer.DarkHtmlViewer.ConfigureLogger(() => NullLoggerFactory.Instance);
+using DarkHtmlViewer;
+
+HtmlViewer.ConfigureLogger(() => NullLoggerFactory.Instance);
 ```
 
 ### Virtual host name to folder path mapping
@@ -108,7 +110,9 @@ See [this page](https://docs.microsoft.com/en-us/dotnet/api/microsoft.web.webvie
 
 Enable virtual host name to folder path mapping like so:
 ```csharp
-DarkHtmlViewer.DarkHtmlViewer.ConfigureVirtualHostNameToFolderMappingSettings(new VirtualHostNameToFolderMappingSettings
+using DarkHtmlViewer;
+
+HtmlViewer.ConfigureVirtualHostNameToFolderMappingSettings(new VirtualHostNameToFolderMappingSettings
 {
     IsEnabled = true,
     Hostname = "myfiles.local",
