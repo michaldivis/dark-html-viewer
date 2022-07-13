@@ -14,6 +14,7 @@
     <PackageId>Divis.DarkHtmlViewer</PackageId>
 	<PackageReleaseNotes>See https://github.com/michaldivis/DarkHtmlViewer/releases</PackageReleaseNotes>
 	<LangVersion>9.0</LangVersion>
+	<PackageTags>webview;WPF;html;viewer;renderer;browser</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
