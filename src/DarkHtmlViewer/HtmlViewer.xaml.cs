@@ -57,6 +57,7 @@ namespace DarkHtmlViewer
         public ICommand LoadCommand => new DarkCommand<string>(Load);
         public ICommand ScrollCommand => new DarkAsyncCommand<string>(ScrollAsync);
         public ICommand ScrollOnNextLoadCommand => new DarkCommand<string>(ScrollOnNextLoad);
+        public ICommand SaveScrollPositionForNextLoadCommand => new DarkAsyncCommand(SaveScrollPositionForNextLoadAsync);
         public ICommand SearchCommand => new DarkAsyncCommand<string>(SearchAsync);
         public ICommand SearchOnNextLoadCommand => new DarkCommand<string>(SearchOnNextLoad);
         public ICommand PrintCommand => new DarkAsyncCommand(PrintAsync);
@@ -191,6 +192,12 @@ namespace DarkHtmlViewer
                 await ScrollAsync(_scrollToNext);
                 _scrollToNext = null;
             }
+            else if(_scrollPositionXNext is not null)
+            {
+                await ScrollAsync(_scrollPositionXNext, _scrollPositionYNext);
+                _scrollPositionXNext = null;
+                _scrollPositionYNext = null;
+            }
 
             if (_textToFind is not null)
             {
@@ -215,11 +222,37 @@ namespace DarkHtmlViewer
         }
 
         /// <summary>
+        /// Tries to scroll to a position
+        /// </summary>
+        private async Task ScrollAsync(string x, string y)
+        {
+            var script = $"window.scrollTo({x}, {y});";
+            await webView2.ExecuteScriptAsync(script);
+        }
+
+        /// <summary>
         /// Sets the elementId to be scrolled to next time HTML content is loaded
         /// </summary>
         public void ScrollOnNextLoad(string elementId)
         {
             _scrollToNext = elementId;
+        }
+
+        #endregion
+
+        #region Save scroll position
+
+        private string _scrollPositionXNext = null;
+        private string _scrollPositionYNext = null;
+
+        /// <summary>
+        /// Saves the current scroll position and tries to restore it next time HTML content is loaded
+        /// <para>If <see cref="ScrollOnNextLoad"/> is used as well, this will be ignored</para>
+        /// </summary>
+        public async Task SaveScrollPositionForNextLoadAsync()
+        {
+            _scrollPositionXNext = await webView2.ExecuteScriptAsync("window.scrollX");
+            _scrollPositionYNext = await webView2.ExecuteScriptAsync("window.scrollY");
         }
 
         #endregion

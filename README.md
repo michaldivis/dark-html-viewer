@@ -18,6 +18,16 @@ And use the `HtmlViewer` control
 <darkhtmlviewer:HtmlViewer x:Name="htmlViewer" />
 ```
 
+### Commands & methods
+`LoadCommand` => `void Load(string html)`\
+`ScrollCommand` => `Task ScrollAsync(string elementId)`\
+`ScrollOnNextLoadCommand` => `void ScrollOnNextLoad(string elementId)`\
+`SearchCommand` => `Task SearchAsync(string text)`\
+`SearchOnNextLoadCommand` => `void SearchOnNextLoad(string text)`\
+`SaveScrollPositionForNextLoadCommand` => `SaveScrollPositionForNextLoadAsync()`\
+`PrintCommand` => `Task PrintAsync()`\
+`ZoomCommand` => `void Zoom(double zoom)`
+
 ### Loading HTML content
 To load content into the viewer, bind an HTML string to it's `HtmlContent` property
 ```XAML
@@ -68,6 +78,16 @@ To scroll to a specific element id, you have several options.
     Command="{Binding ElementName=htmlViewer, Path=ScrollOnNextLoadCommand}"
     CommandParameter="elementId"
     Content="Scroll to elementId on next load" />
+```
+
+### Save scroll position
+Saves the current scroll position and tries to restore it next time HTML content is loaded. If `ScrollOnNextLoad` is used as well, this will be ignored
+
+`SaveScrollPositionForNextLoadCommand`: will try to scroll to a specific element in the next loaded HTML file
+```XAML
+<Button
+    Command="{Binding ElementName=htmlViewer, Path=SaveScrollPositionForNextLoadCommand}"
+    Content="Save scroll position for next load" />
 ```
 
 ### Search

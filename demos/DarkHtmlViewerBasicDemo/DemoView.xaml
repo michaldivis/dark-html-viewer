@@ -51,6 +51,11 @@
                 <Button
                     Margin="5"
                     Padding="10,5,10,5"
+                    Command="{Binding ElementName=htmlViewer, Path=SaveScrollPositionForNextLoadCommand}"
+                    Content="Save scroll position for next load" />
+                <Button
+                    Margin="5"
+                    Padding="10,5,10,5"
                     Command="{Binding ElementName=htmlViewer, Path=PrintCommand}"
                     Content="Print" />
 
