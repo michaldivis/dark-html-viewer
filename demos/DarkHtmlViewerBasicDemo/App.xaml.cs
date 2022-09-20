@@ -23,7 +23,6 @@ public partial class App : Application
         //configure logger
         HtmlViewer.ConfigureLogger(() => NullLoggerFactory.Instance);
 
-
         var appLocation = Assembly.GetExecutingAssembly().Location;
         var htmlAssetsDir = Path.Combine(Path.GetDirectoryName(appLocation), "Files");
 
@@ -35,7 +34,7 @@ public partial class App : Application
             AccessKind = Microsoft.Web.WebView2.Core.CoreWebView2HostResourceAccessKind.Allow
         });
 
-        MainWindow = new DemoView();
+        MainWindow = new MainWindow();
         MainWindow.Show();
     }
 

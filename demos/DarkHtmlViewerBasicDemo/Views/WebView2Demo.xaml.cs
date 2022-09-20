@@ -1,38 +1,36 @@
 ﻿using DarkHelpers;
-using DarkHelpers.Commands;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
+using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
 
-namespace DarkHtmlViewerBasicDemo;
-
-public partial class DemoView : Window
+namespace DarkHtmlViewerBasicDemo.Views;
+public partial class WebView2Demo : UserControl
 {
     private DemoItem _currentItem;
 
     public ICommand LoadItemCommand { get; }
     public ICommand HandleLinkClickCommand { get; }
 
-    public DarkObservableCollection<DemoItem> Items { get; } = new DarkObservableCollection<DemoItem>();
+    public DarkObservableCollection<DemoItem> Items { get; } = new();
 
-    public DemoView()
+    public WebView2Demo()
     {
         InitializeComponent();
 
-        LoadItemCommand = new DarkCommand<DemoItem>(LoadItem);
-        HandleLinkClickCommand = new DarkCommand<string>(HandleLinkClick);
+        LoadItemCommand = new RelayCommand<DemoItem>(LoadItem);
+        HandleLinkClickCommand = new RelayCommand<string>(HandleLinkClick);
 
         DataContext = this;
+
+        Loaded += WebView2Demo_Loaded;
     }
 
-    protected override void OnContentRendered(EventArgs e)
+    private void WebView2Demo_Loaded(object sender, RoutedEventArgs e)
     {
-        base.OnContentRendered(e);
-
         var items = GenereateItems();
         Items.AddRange(items);
 
@@ -46,22 +44,23 @@ public partial class DemoView : Window
         htmlViewer.LoadCommand.TryExecute(item.Html);
     }
 
-    private IEnumerable<DemoItem> GenereateItems()
+    private static IEnumerable<DemoItem> GenereateItems()
     {
         return new List<DemoItem>
         {
-            new DemoItem
+            new()
             {
                 Title = "Home",
                 ItemCode = "home",
                 Html = LoadHtml("home")
             },
-            new DemoItem
+            new()
             {
                 Title = "Super cool looking code!",
                 ItemCode = "page1",
                 Html = LoadHtml("page1")
-            },new DemoItem
+            },
+            new()
             {
                 Title = "What the hell are NFTs?",
                 ItemCode = "page2",
@@ -70,7 +69,7 @@ public partial class DemoView : Window
         };
     }
 
-    private string LoadHtml(string itemCode)
+    private static string LoadHtml(string itemCode)
     {
         var rawHtml = itemCode switch
         {
@@ -85,7 +84,7 @@ public partial class DemoView : Window
         return preparedHtml;
     }
 
-    private static readonly Regex ItemCodeRegex = new Regex(@"(?<itemCode>[a-zA-Z0-9]+)-.+");
+    private static readonly Regex ItemCodeRegex = new(@"(?<itemCode>[a-zA-Z0-9]+)-.+");
 
     private void HandleLinkClick(string link)
     {
@@ -111,12 +110,5 @@ public partial class DemoView : Window
         htmlViewer.ScrollOnNextLoadCommand.TryExecute(link);
 
         LoadItem(item);
-    }
-
-    protected override void OnClosing(CancelEventArgs e)
-    {
-        base.OnClosing(e);
-
-        //htmlViewer.Cleanup();
     }
 }
