@@ -105,16 +105,10 @@
             </Grid>
         </Border>
 
-        <darkHtmlViewer:HtmlViewer
+        <darkHtmlViewerCef:HtmlViewer
             x:Name="htmlViewer"
             Grid.Row="1"
             Grid.Column="1"
             LinkClickedCommand="{Binding HandleLinkClickCommand}" />
-
-        <!--<darkHtmlViewerCef:HtmlViewer
-            x:Name="htmlViewer"
-            Grid.Row="1"
-            Grid.Column="1"
-            LinkClickedCommand="{Binding HandleLinkClickCommand}" />-->
     </Grid>
 </Window>

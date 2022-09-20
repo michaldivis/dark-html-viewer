@@ -31,7 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\DarkHtmlViewer.CefSharp\DarkHtmlViewer.Cef.csproj" />
     <ProjectReference Include="..\..\src\DarkHtmlViewer.Cef\DarkHtmlViewer.Cef.csproj" />
     <ProjectReference Include="..\..\src\DarkHtmlViewer\DarkHtmlViewer.csproj" />
   </ItemGroup>

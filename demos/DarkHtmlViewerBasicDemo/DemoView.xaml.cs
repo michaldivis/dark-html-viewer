@@ -117,6 +117,6 @@ public partial class DemoView : Window
     {
         base.OnClosing(e);
 
-        htmlViewer.Cleanup();
+        //htmlViewer.Cleanup();
     }
 }

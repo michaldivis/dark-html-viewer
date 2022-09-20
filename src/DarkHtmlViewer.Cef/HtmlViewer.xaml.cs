@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using System.Windows;
 using System;
 using System.Windows.Controls;
@@ -8,6 +7,9 @@ using System.Windows.Input;
 using DarkHelpers;
 using CommunityToolkit.Mvvm.Input;
 using CefSharp;
+using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace DarkHtmlViewer.Cef
 {
@@ -15,6 +17,8 @@ namespace DarkHtmlViewer.Cef
     {
         private readonly ILogger<HtmlViewer> _logger;
         private readonly Guid _instanceId;
+
+        internal const string BaseUrl = "https://darkHtmlViewer_cef/";
 
         #region Bindable properties
 
@@ -67,9 +71,7 @@ namespace DarkHtmlViewer.Cef
         private string _loadAfterInitialization = null;
         private void InitializeCefBrowser()
         {
-            //TODO initialize browser
-
-            cefBrowser.Visibility = Visibility.Visible;
+            cefBrowser.RequestHandler = new CustomRequestHandler(TriggerLinkClicked);
 
             _initialized = true;
 
@@ -110,35 +112,12 @@ namespace DarkHtmlViewer.Cef
                 return;
             }
 
-            //TODO implement
+            cefBrowser.LoadHtml(html, BaseUrl);
+
+            OnLoadCompleted();
         }
 
-        #endregion
-
-        #region Navigation
-
-        private void CefBrowser_NavigationStarting()
-        {
-            //var linkName = Path.GetFileName(e.Uri);
-
-            //var isTempFileName = _fileManager.IsTempFilePath(linkName);
-
-            //if (isTempFileName)
-            //{
-            //    return;
-            //}
-
-            //e.Cancel = true;
-
-            //TriggerLinkClicked(linkName);
-        }
-
-        private void TriggerLinkClicked(string link)
-        {
-            LinkClickedCommand?.TryExecute(link);
-        }
-
-        private void CefBrowser_NavigationCompleted()
+        private void OnLoadCompleted()
         {
             if (_scrollToNext is not null)
             {
@@ -151,6 +130,55 @@ namespace DarkHtmlViewer.Cef
                 Search(_textToFind);
                 _textToFind = null;
             }
+        }
+
+        #endregion
+
+        #region Navigation
+
+        class CustomRequestHandler : CefSharp.Handler.RequestHandler
+        {
+            private readonly Action<string> _anchorLinkClickHandler;
+
+            private static readonly Regex _anchorLinkRegex = new(@"https:\/\/darkHtmlViewer_cef\/(?<link>.+)", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+            public CustomRequestHandler(Action<string> anchorLinkClickHandler)
+            {
+                _anchorLinkClickHandler = anchorLinkClickHandler;
+            }
+
+            protected override bool OnBeforeBrowse(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect)
+            {
+                var urlContainsAnchorLink = TryGetClickedAnchorLink(request.Url, out var clickedAnchorLink);
+
+                if (!urlContainsAnchorLink)
+                {
+                    return base.OnBeforeBrowse(chromiumWebBrowser, browser, frame, request, userGesture, isRedirect);
+                }
+
+                _anchorLinkClickHandler.Invoke(clickedAnchorLink);
+
+                return true;
+            }
+
+            private bool TryGetClickedAnchorLink(string url, out string link)
+            {
+                var match = _anchorLinkRegex.Match(url);
+
+                if (!match.Success)
+                {
+                    link = null;
+                    return false;
+                }
+
+                link = match.Groups["link"].Value;
+                return true;
+            }
+        }
+
+        private void TriggerLinkClicked(string link)
+        {
+            Dispatcher.Invoke(() => LinkClickedCommand?.TryExecute(link));
         }
 
         #endregion
@@ -197,10 +225,10 @@ namespace DarkHtmlViewer.Cef
                 return;
             }
 
-            //TODO search async
+            cefBrowser.Find(text, true, false, false);
         }
 
-        private string CleanSearchText(string text)
+        private static string CleanSearchText(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
