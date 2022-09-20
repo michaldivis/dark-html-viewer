@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>net6.0-windows</TargetFramework>
+	  <UseWPF>true</UseWPF>
+	  <Version>1.0.1</Version>
+	  <Authors>Michal Diviš</Authors>
+	  <Description>A simple HTML viewer control for WPF (using CefSharp)</Description>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageProjectUrl>https://github.com/michaldivis/DarkHtmlViewer</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/michaldivis/DarkHtmlViewer</RepositoryUrl>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <PackageId>Divis.DarkHtmlViewer.CefSharp</PackageId>
+	  <PackageReleaseNotes>See https://github.com/michaldivis/DarkHtmlViewer/releases</PackageReleaseNotes>
+	  <LangVersion>9.0</LangVersion>
+	  <PackageTags>cefsharp;WPF;html;viewer;renderer;browser</PackageTags>
+  </PropertyGroup>
+
+  <!--CefSharp-specific settings-->
+  <PropertyGroup>
+	  <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	  <SelfContained>false</SelfContained>
+	  <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+	
+  <ItemGroup>
+    <None Include="..\..\assets\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CefSharp.Wpf.NETCore" Version="105.3.390" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
+    <PackageReference Include="Divis.DarkHelpers" Version="0.2.0" />
+	<PackageReference Include="FluentValidation" Version="11.1.0" />
+	<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
+  </ItemGroup>
+
+</Project>

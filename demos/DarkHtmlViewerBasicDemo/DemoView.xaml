@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:darkHtmlViewer="clr-namespace:DarkHtmlViewer;assembly=DarkHtmlViewer"
+    xmlns:darkHtmlViewerCef="clr-namespace:DarkHtmlViewer.CefSharp;assembly=DarkHtmlViewer.CefSharp"
     xmlns:local="clr-namespace:DarkHtmlViewerBasicDemo"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="this"
@@ -109,5 +110,11 @@
             Grid.Row="1"
             Grid.Column="1"
             LinkClickedCommand="{Binding HandleLinkClickCommand}" />
+
+        <!--<darkHtmlViewerCef:HtmlViewer
+            x:Name="htmlViewer"
+            Grid.Row="1"
+            Grid.Column="1"
+            LinkClickedCommand="{Binding HandleLinkClickCommand}" />-->
     </Grid>
 </Window>

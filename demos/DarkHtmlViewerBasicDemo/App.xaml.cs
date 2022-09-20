@@ -1,4 +1,6 @@
-﻿using DarkHtmlViewer;
+﻿using CefSharp.Wpf;
+using CefSharp;
+using DarkHtmlViewer;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.IO;
@@ -16,8 +18,11 @@ public partial class App : Application
 
         await CheckCompatibilityAsync();
 
+        ConfigureCefSharp();
+
         //configure logger
         HtmlViewer.ConfigureLogger(() => NullLoggerFactory.Instance);
+
 
         var appLocation = Assembly.GetExecutingAssembly().Location;
         var htmlAssetsDir = Path.Combine(Path.GetDirectoryName(appLocation), "Files");
@@ -32,6 +37,28 @@ public partial class App : Application
 
         MainWindow = new DemoView();
         MainWindow.Show();
+    }
+
+    private static void ConfigureCefSharp()
+    {
+#if ANYCPU
+            //Only required for PlatformTarget of AnyCPU
+            CefRuntime.SubscribeAnyCpuAssemblyResolver();
+#endif
+        var settings = new CefSettings()
+        {
+            //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
+            CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache")
+        };
+
+        settings.CefCommandLineArgs.Add("enable-media-stream");
+        settings.CefCommandLineArgs.Add("use-fake-ui-for-media-stream");
+        settings.CefCommandLineArgs.Add("enable-usermedia-screen-capturing");
+
+        if (!Cef.IsInitialized)
+        {
+            Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
+        }
     }
 
     private static async Task CheckCompatibilityAsync()
