@@ -6,6 +6,14 @@ using System.Windows;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
+using CefSharp.Wpf;
+using CefSharp;
+using System;
+using System.IO;
+using DarkHtmlViewer;
+using System.Reflection;
+using Microsoft.Extensions.Logging.Abstractions;
+using CefSharp.SchemeHandler;
 
 namespace DarkHtmlViewerBasicDemo.Views;
 public partial class CefSharpDemo : UserControl
@@ -21,12 +29,50 @@ public partial class CefSharpDemo : UserControl
     {
         InitializeComponent();
 
+        ConfigureCefSharpViewer();
+
         LoadItemCommand = new RelayCommand<DemoItem>(LoadItem);
         HandleLinkClickCommand = new RelayCommand<string>(HandleLinkClick);
 
         DataContext = this;
 
         Loaded += WebView2Demo_Loaded;
+    }
+
+    private void ConfigureCefSharpViewer()
+    {
+        HtmlViewer.ConfigureLogger(() => NullLoggerFactory.Instance);
+
+#if ANYCPU
+            //Only required for PlatformTarget of AnyCPU
+            CefRuntime.SubscribeAnyCpuAssemblyResolver();
+#endif
+        var settings = new CefSettings()
+        {
+            //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
+            CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache")
+        };
+
+        var appLocation = Assembly.GetExecutingAssembly().Location;
+        var htmlAssetsDir = Path.Combine(Path.GetDirectoryName(appLocation), "Files");
+
+        settings.RegisterScheme(new CefCustomScheme
+        {
+            SchemeName = "localfolder",
+            DomainName = "darkcefassets",
+            SchemeHandlerFactory = new FolderSchemeHandlerFactory(
+                rootFolder: htmlAssetsDir
+            )
+        });
+
+        settings.CefCommandLineArgs.Add("enable-media-stream");
+        settings.CefCommandLineArgs.Add("use-fake-ui-for-media-stream");
+        settings.CefCommandLineArgs.Add("enable-usermedia-screen-capturing");
+
+        if (!Cef.IsInitialized)
+        {
+            Cef.Initialize(settings, performDependencyCheck: false, browserProcessHandler: null);
+        }
     }
 
     private void WebView2Demo_Loaded(object sender, RoutedEventArgs e)
@@ -44,7 +90,7 @@ public partial class CefSharpDemo : UserControl
         htmlViewer.LoadCommand.TryExecute(item.Html);
     }
 
-    private static IEnumerable<DemoItem> GenereateItems()
+    private IEnumerable<DemoItem> GenereateItems()
     {
         return new List<DemoItem>
         {
@@ -69,7 +115,7 @@ public partial class CefSharpDemo : UserControl
         };
     }
 
-    private static string LoadHtml(string itemCode)
+    private string LoadHtml(string itemCode)
     {
         var rawHtml = itemCode switch
         {
@@ -79,7 +125,7 @@ public partial class CefSharpDemo : UserControl
             _ => null
         };
 
-        var preparedHtml = rawHtml.Replace("{htmlResDir}", "https://darkassets.local/");
+        var preparedHtml = rawHtml.Replace("{htmlResDir}", "localfolder://darkcefassets/");
 
         return preparedHtml;
     }

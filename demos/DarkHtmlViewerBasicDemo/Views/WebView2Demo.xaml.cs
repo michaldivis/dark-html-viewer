@@ -6,11 +6,17 @@ using System.Windows;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
+using DarkHtmlViewer;
+using System.Reflection;
+using Microsoft.Extensions.Logging.Abstractions;
+using System.IO;
 
 namespace DarkHtmlViewerBasicDemo.Views;
 public partial class WebView2Demo : UserControl
 {
     private DemoItem _currentItem;
+
+    private const string _htmlResourceBaseUrl = "https://darkassets.local/";
 
     public ICommand LoadItemCommand { get; }
     public ICommand HandleLinkClickCommand { get; }
@@ -21,12 +27,30 @@ public partial class WebView2Demo : UserControl
     {
         InitializeComponent();
 
+        ConfigureWebView2Viewer();
+
         LoadItemCommand = new RelayCommand<DemoItem>(LoadItem);
         HandleLinkClickCommand = new RelayCommand<string>(HandleLinkClick);
 
         DataContext = this;
 
         Loaded += WebView2Demo_Loaded;
+    }
+
+    private static void ConfigureWebView2Viewer()
+    {
+        HtmlViewer.ConfigureLogger(() => NullLoggerFactory.Instance);
+
+        var appLocation = Assembly.GetExecutingAssembly().Location;
+        var htmlAssetsDir = Path.Combine(Path.GetDirectoryName(appLocation), "Files");
+
+        HtmlViewer.ConfigureVirtualHostNameToFolderMappingSettings(new VirtualHostNameToFolderMappingSettings
+        {
+            IsEnabled = true,
+            Hostname = "darkassets.local",
+            FolderPath = htmlAssetsDir,
+            AccessKind = Microsoft.Web.WebView2.Core.CoreWebView2HostResourceAccessKind.Allow
+        });
     }
 
     private void WebView2Demo_Loaded(object sender, RoutedEventArgs e)
@@ -79,7 +103,7 @@ public partial class WebView2Demo : UserControl
             _ => null
         };
 
-        var preparedHtml = rawHtml.Replace("{htmlResDir}", "https://darkassets.local/");
+        var preparedHtml = rawHtml.Replace("{htmlResDir}", _htmlResourceBaseUrl);
 
         return preparedHtml;
     }
