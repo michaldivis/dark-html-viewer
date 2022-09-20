@@ -6,6 +6,12 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+	<!--CefSharp-specific settings-->
+	<PropertyGroup>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<SelfContained>false</SelfContained>
+	</PropertyGroup>
+
   <ItemGroup>
     <None Remove="Files\bootstrap.min.css" />
     <None Remove="Files\code1.jpg" />

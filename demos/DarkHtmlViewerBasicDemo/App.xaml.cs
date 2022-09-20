@@ -57,7 +57,7 @@ public partial class App : Application
 
         if (!Cef.IsInitialized)
         {
-            Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
+            Cef.Initialize(settings, performDependencyCheck: false, browserProcessHandler: null);
         }
     }
 
