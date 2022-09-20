@@ -7,8 +7,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using DarkHelpers;
 using CommunityToolkit.Mvvm.Input;
+using CefSharp;
 
-namespace DarkHtmlViewer.CefSharp
+namespace DarkHtmlViewer.Cef
 {
     public partial class HtmlViewer : UserControl
     {
@@ -55,7 +56,7 @@ namespace DarkHtmlViewer.CefSharp
 
             _logger = GetLogger<HtmlViewer>();
 
-            _logger.LogDebug("DarkHtmlViewer-CefSharp-{InstanceId}: Initializing", _instanceId);
+            _logger.LogDebug("DarkHtmlViewer-Cef-{InstanceId}: Initializing", _instanceId);
 
             InitializeCefBrowser();
         }
@@ -137,17 +138,17 @@ namespace DarkHtmlViewer.CefSharp
             LinkClickedCommand?.TryExecute(link);
         }
 
-        private async void CefBrowser_NavigationCompleted()
+        private void CefBrowser_NavigationCompleted()
         {
             if (_scrollToNext is not null)
             {
-                await ScrollAsync(_scrollToNext);
+                Scroll(_scrollToNext);
                 _scrollToNext = null;
             }
 
             if (_textToFind is not null)
             {
-                await SearchAsync(_textToFind);
+                Search(_textToFind);
                 _textToFind = null;
             }
         }
@@ -162,10 +163,10 @@ namespace DarkHtmlViewer.CefSharp
         /// Tries to scroll to an element by ID
         /// </summary>
         [RelayCommand]
-        public async Task ScrollAsync(string elementId)
+        public void Scroll(string elementId)
         {
             var script = $"document.getElementById(\"{elementId}\").scrollIntoView();";
-            await cefBrowser.ExecuteScriptAsync(script);
+            cefBrowser.ExecuteScriptAsync(script);
         }
 
         /// <summary>
@@ -187,7 +188,7 @@ namespace DarkHtmlViewer.CefSharp
         /// Finds text in the loaded HTML
         /// </summary>
         [RelayCommand]
-        public async Task SearchAsync(string text)
+        public void Search(string text)
         {
             var clean = CleanSearchText(text);
 

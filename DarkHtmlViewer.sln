@@ -16,7 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demos", "demos", "{C6CD08FE
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DarkHtmlViewerBasicDemo", "demos\DarkHtmlViewerBasicDemo\DarkHtmlViewerBasicDemo.csproj", "{8831F5C0-B810-4F6E-8EF3-C4AB048BA9F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DarkHtmlViewer.CefSharp", "src\DarkHtmlViewer.CefSharp\DarkHtmlViewer.CefSharp.csproj", "{F24345D8-8D8C-4465-9F61-510671817258}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DarkHtmlViewer.Cef", "src\DarkHtmlViewer.Cef\DarkHtmlViewer.Cef.csproj", "{F24345D8-8D8C-4465-9F61-510671817258}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
