@@ -10,10 +10,10 @@ using CefSharp.Wpf;
 using CefSharp;
 using System;
 using System.IO;
-using DarkHtmlViewer;
 using System.Reflection;
 using Microsoft.Extensions.Logging.Abstractions;
 using CefSharp.SchemeHandler;
+using DarkHtmlViewer.Cef;
 
 namespace DarkHtmlViewerBasicDemo.Views;
 public partial class CefSharpDemo : UserControl
@@ -27,16 +27,21 @@ public partial class CefSharpDemo : UserControl
 
     public CefSharpDemo()
     {
-        InitializeComponent();
-
+        //this needs to go before InitializeComponent for the configuration to take effect
         ConfigureCefSharpViewer();
+
+        InitializeComponent();        
 
         LoadItemCommand = new RelayCommand<DemoItem>(LoadItem);
         HandleLinkClickCommand = new RelayCommand<string>(HandleLinkClick);
 
         DataContext = this;
 
-        Loaded += WebView2Demo_Loaded;
+        var items = GenereateItems();
+        Items.AddRange(items);
+
+        var firstItem = items.First();
+        LoadItem(firstItem);
     }
 
     private void ConfigureCefSharpViewer()
@@ -47,6 +52,7 @@ public partial class CefSharpDemo : UserControl
             //Only required for PlatformTarget of AnyCPU
             CefRuntime.SubscribeAnyCpuAssemblyResolver();
 #endif
+
         var settings = new CefSettings()
         {
             //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
@@ -59,9 +65,11 @@ public partial class CefSharpDemo : UserControl
         settings.RegisterScheme(new CefCustomScheme
         {
             SchemeName = "localfolder",
-            DomainName = "darkcefassets",
+            DomainName = "darkassets",
             SchemeHandlerFactory = new FolderSchemeHandlerFactory(
-                rootFolder: htmlAssetsDir
+                rootFolder: htmlAssetsDir,
+                hostName: "darkassets",
+                defaultPage: "index.html"
             )
         });
 
@@ -73,15 +81,6 @@ public partial class CefSharpDemo : UserControl
         {
             Cef.Initialize(settings, performDependencyCheck: false, browserProcessHandler: null);
         }
-    }
-
-    private void WebView2Demo_Loaded(object sender, RoutedEventArgs e)
-    {
-        var items = GenereateItems();
-        Items.AddRange(items);
-
-        var firstItem = items.First();
-        LoadItem(firstItem);
     }
 
     private void LoadItem(DemoItem item)
@@ -125,7 +124,7 @@ public partial class CefSharpDemo : UserControl
             _ => null
         };
 
-        var preparedHtml = rawHtml.Replace("{htmlResDir}", "localfolder://darkcefassets/");
+        var preparedHtml = rawHtml.Replace("{htmlResDir}", "localfolder://darkassets/");
 
         return preparedHtml;
     }

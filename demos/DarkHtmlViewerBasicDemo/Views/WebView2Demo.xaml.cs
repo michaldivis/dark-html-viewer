@@ -34,7 +34,11 @@ public partial class WebView2Demo : UserControl
 
         DataContext = this;
 
-        Loaded += WebView2Demo_Loaded;
+        var items = GenereateItems();
+        Items.AddRange(items);
+
+        var firstItem = items.First();
+        LoadItem(firstItem);
     }
 
     private static void ConfigureWebView2Viewer()
@@ -51,15 +55,6 @@ public partial class WebView2Demo : UserControl
             FolderPath = htmlAssetsDir,
             AccessKind = Microsoft.Web.WebView2.Core.CoreWebView2HostResourceAccessKind.Allow
         });
-    }
-
-    private void WebView2Demo_Loaded(object sender, RoutedEventArgs e)
-    {
-        var items = GenereateItems();
-        Items.AddRange(items);
-
-        var firstItem = items.First();
-        LoadItem(firstItem);
     }
 
     private void LoadItem(DemoItem item)
