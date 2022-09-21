@@ -48,14 +48,8 @@ public partial class CefSharpDemo : UserControl
     {
         HtmlViewer.ConfigureLogger(() => NullLoggerFactory.Instance);
 
-#if ANYCPU
-            //Only required for PlatformTarget of AnyCPU
-            CefRuntime.SubscribeAnyCpuAssemblyResolver();
-#endif
-
         var settings = new CefSettings()
         {
-            //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
             CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache")
         };
 

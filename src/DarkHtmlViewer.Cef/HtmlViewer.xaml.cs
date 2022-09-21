@@ -69,8 +69,6 @@ namespace DarkHtmlViewer.Cef
         private string _loadAfterInitialization = null;
         private void InitializeCefBrowser()
         {
-            cefBrowser.BrowserSettings.LocalStorage = CefState.Enabled;
-
             cefBrowser.RequestHandler = new CustomRequestHandler(TriggerLinkClicked);
 
             _initialized = true;
