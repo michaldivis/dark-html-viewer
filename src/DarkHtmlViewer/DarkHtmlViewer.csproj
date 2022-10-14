@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net5.0-windows;net6.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <Authors>Michal Diviš</Authors>
     <Description>A simple HTML viewer control for WPF (using WebView2)</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
