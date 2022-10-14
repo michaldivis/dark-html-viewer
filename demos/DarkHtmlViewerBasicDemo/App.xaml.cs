@@ -1,6 +1,7 @@
 ﻿using DarkHtmlViewer;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -29,6 +30,8 @@ public partial class App : Application
             FolderPath = htmlAssetsDir,
             AccessKind = Microsoft.Web.WebView2.Core.CoreWebView2HostResourceAccessKind.Allow
         });
+
+        HtmlViewer.ConfigureDefaultBackgroundColor(Color.Navy);
 
         MainWindow = new DemoView();
         MainWindow.Show();
