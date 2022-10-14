@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -88,6 +89,8 @@ namespace DarkHtmlViewer
         {
             var initFilePath = _fileManager.GetFilePath();
             _logger.LogDebug("DarkHtmlViewer-{InstanceId}: {Method}, init file: {InitFile}", _instanceId, nameof(InitializeWebView2), initFilePath);
+
+            webView2.DefaultBackgroundColor = _defaultBackgroundColor;
 
             webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
             webView2.NavigationStarting += WebView2_NavigationStarting;
@@ -429,6 +432,21 @@ namespace DarkHtmlViewer
         public void Cleanup()
         {
             _fileManager.TryDeleteCurrentTempFile();
+        }
+
+        #endregion
+
+        #region Theme
+
+        private static Color _defaultBackgroundColor = Color.White;
+
+        /// <summary>
+        /// Configure the default background color for the WebView
+        /// </summary>
+        /// <param name="defaultBackgroundColor">The background color</param>
+        public static void ConfigureDefaultBackgroundColor(Color defaultBackgroundColor)
+        {
+            _defaultBackgroundColor = defaultBackgroundColor;
         }
 
         #endregion
