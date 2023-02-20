@@ -2,7 +2,7 @@
 
 public class DemoItem
 {
-    public string Title { get; set; }
-    public string ItemCode { get; set; }
-    public string Html { get; set; }
+    public required string Title { get; init; }
+    public required string ItemCode { get; init; }
+    public required string Html { get; init; }
 }

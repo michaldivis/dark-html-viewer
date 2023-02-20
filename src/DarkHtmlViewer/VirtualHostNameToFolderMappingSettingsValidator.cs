@@ -1,16 +1,12 @@
 ﻿using FluentValidation;
 
-namespace DarkHtmlViewer
+namespace DarkHtmlViewer;
+
+public class VirtualHostNameToFolderMappingSettingsValidator : AbstractValidator<VirtualHostNameToFolderMappingSettings>
 {
-    public class VirtualHostNameToFolderMappingSettingsValidator : AbstractValidator<VirtualHostNameToFolderMappingSettings>
+    public VirtualHostNameToFolderMappingSettingsValidator()
     {
-        public VirtualHostNameToFolderMappingSettingsValidator()
-        {
-            When(settings => settings.IsEnabled, () =>
-            {
-                RuleFor(a => a.Hostname).NotEmpty();
-                RuleFor(a => a.FolderPath).MustBeAnExistingFolderPath();
-            });
-        }
+        RuleFor(a => a.Hostname).NotEmpty();
+        RuleFor(a => a.FolderPath).MustBeAnExistingFolderPath();
     }
 }

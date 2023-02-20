@@ -1,30 +1,27 @@
-﻿using DarkHelpers;
-using DarkHelpers.Commands;
+﻿using System.Collections.ObjectModel;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
+using System.Diagnostics;
+using System.ComponentModel;
 
 namespace DarkHtmlViewerBasicDemo;
 
 public partial class DemoView : Window
 {
-    private DemoItem _currentItem;
+    private DemoItem? _currentItem;
 
-    public ICommand LoadItemCommand { get; }
-    public ICommand HandleLinkClickCommand { get; }
+    public ObservableCollection<DemoItem> Items { get; } = new();
 
-    public DarkObservableCollection<DemoItem> Items { get; } = new DarkObservableCollection<DemoItem>();
+    [GeneratedRegex("(?<itemCode>[a-zA-Z0-9]+)-.+", RegexOptions.Compiled | RegexOptions.Singleline)]
+    private static partial Regex ItemCodeRegex();
 
     public DemoView()
     {
         InitializeComponent();
-
-        LoadItemCommand = new DarkCommand<DemoItem>(LoadItem);
-        HandleLinkClickCommand = new DarkCommand<string>(HandleLinkClick);
 
         DataContext = this;
     }
@@ -34,16 +31,27 @@ public partial class DemoView : Window
         base.OnContentRendered(e);
 
         var items = GenereateItems();
-        Items.AddRange(items);
+
+        foreach (var item in items)
+        {
+            Items.Add(item);
+        }
 
         var firstItem = items.First();
         LoadItem(firstItem);
     }
 
-    private void LoadItem(DemoItem item)
+    [RelayCommand]
+    private void LoadItem(DemoItem? item)
     {
+        if(item is null)
+        {
+            return;
+        }
+
         _currentItem = item;
-        htmlViewer.LoadCommand.TryExecute(item.Html);
+
+        TryExecute(htmlViewer.LoadCommand, item.Html);
     }
 
     private IEnumerable<DemoItem> GenereateItems()
@@ -61,7 +69,8 @@ public partial class DemoView : Window
                 Title = "Super cool looking code!",
                 ItemCode = "page1",
                 Html = LoadHtml("page1")
-            },new DemoItem
+            },
+            new DemoItem
             {
                 Title = "What the hell are NFTs?",
                 ItemCode = "page2",
@@ -80,16 +89,27 @@ public partial class DemoView : Window
             _ => null
         };
 
+        if (rawHtml is null)
+        {
+            return "<html><body><p>No content.</p></body></html>";
+        }
+
         var preparedHtml = rawHtml.Replace("{htmlResDir}", "https://darkassets.local/");
 
         return preparedHtml;
     }
 
-    private static readonly Regex ItemCodeRegex = new Regex(@"(?<itemCode>[a-zA-Z0-9]+)-.+");
-
-    private void HandleLinkClick(string link)
+    [RelayCommand]
+    private void HandleLinkClick(string? link)
     {
-        var itemCodeMatch = ItemCodeRegex.Match(link);
+        Debug.WriteLine("Link clicked: " + link ?? "null");
+
+        if (link is null)
+        {
+            return;
+        }
+
+        var itemCodeMatch = ItemCodeRegex().Match(link);
         if (!itemCodeMatch.Success)
         {
             return;
@@ -104,13 +124,26 @@ public partial class DemoView : Window
 
         if (item == _currentItem)
         {
-            htmlViewer.ScrollCommand.TryExecute(link);
+            TryExecute(htmlViewer.ScrollCommand, link);
             return;
         }
 
-        htmlViewer.ScrollOnNextLoadCommand.TryExecute(link);
+        TryExecute(htmlViewer.ScrollOnNextLoadCommand, link);
 
         LoadItem(item);
+    }
+
+    private static void TryExecute<T>(IRelayCommand<T> command, T? parameter)
+    {
+        if(command is null)
+        {
+            return;
+        }
+
+        if (command.CanExecute(parameter))
+        {
+            command.Execute(parameter);
+        }
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -118,5 +151,10 @@ public partial class DemoView : Window
         base.OnClosing(e);
 
         htmlViewer.Cleanup();
+    }
+
+    private void sliderZoom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        htmlViewer?.Zoom(e.NewValue);
     }
 }

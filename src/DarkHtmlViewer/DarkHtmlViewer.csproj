@@ -1,27 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0-windows;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net6.0-windows;net7.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
-    <Version>1.0.2</Version>
-    <Authors>Michal Diviš</Authors>
-    <Description>A simple HTML viewer control for WPF (using WebView2)</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/michaldivis/DarkHtmlViewer</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/michaldivis/DarkHtmlViewer</RepositoryUrl>
-    <PackageIcon>icon.png</PackageIcon>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>Divis.DarkHtmlViewer</PackageId>
+	<Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+	<Version>1.0.4</Version>
+	<Authors>Michal Diviš</Authors>
+	<Description>A simple HTML viewer control for WPF (using WebView2)</Description>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<PackageProjectUrl>https://github.com/michaldivis/DarkHtmlViewer</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/michaldivis/DarkHtmlViewer</RepositoryUrl>
+	<PackageIcon>icon.png</PackageIcon>
+	<PackageId>Divis.DarkHtmlViewer</PackageId>
 	<PackageReleaseNotes>See https://github.com/michaldivis/DarkHtmlViewer/releases</PackageReleaseNotes>
-	<LangVersion>9.0</LangVersion>
 	<PackageTags>webview;WPF;html;viewer;renderer;browser</PackageTags>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Divis.DarkHelpers" Version="0.2.0" />
-    <PackageReference Include="FluentValidation" Version="11.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1245.22" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
+    <PackageReference Include="FluentValidation" Version="11.5.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1587.40" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +32,10 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+	<None Include="..\..\README.md">
+	  <Pack>True</Pack>
+	  <PackagePath></PackagePath>
+	</None>
   </ItemGroup>
 
 </Project>
