@@ -1,75 +1,53 @@
 ﻿using DarkHtmlViewer;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace DarkHtmlViewerBasicDemo;
 
 public partial class App : Application
 {
-    protected override async void OnStartup(StartupEventArgs e)
+    protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        await CheckCompatibilityAsync();
+        CheckCompatibility();
 
-        //configure logger
-        HtmlViewer.ConfigureLogger(() => NullLoggerFactory.Instance);
+        HtmlViewer.ConfigureLogger(() => LoggerFactory.Create(c =>
+        {
+            c.SetMinimumLevel(LogLevel.Debug);
+            c.AddDebug();
+        }));
 
         var appLocation = Assembly.GetExecutingAssembly().Location;
-        var htmlAssetsDir = Path.Combine(Path.GetDirectoryName(appLocation), "Files");
+        var appDirName = Path.GetDirectoryName(appLocation)!;
+        var htmlAssetsDir = Path.Combine(appDirName, "Files");
 
         HtmlViewer.ConfigureVirtualHostNameToFolderMappingSettings(new VirtualHostNameToFolderMappingSettings
         {
-            IsEnabled = true,
             Hostname = "darkassets.local",
             FolderPath = htmlAssetsDir,
             AccessKind = Microsoft.Web.WebView2.Core.CoreWebView2HostResourceAccessKind.Allow
         });
 
-        HtmlViewer.ConfigureDefaultBackgroundColor(Color.Navy);
+        HtmlViewer.ConfigureDefaultBackgroundColor(Color.FromArgb(255, 24, 24, 24));
 
         MainWindow = new DemoView();
         MainWindow.Show();
     }
 
-    private static async Task CheckCompatibilityAsync()
+    private static void CheckCompatibility()
     {
-        var basicWatch = new System.Diagnostics.Stopwatch();
-        var fullWatch = new System.Diagnostics.Stopwatch();
-
-        //check compatibility - basic
         try
         {
-            basicWatch.Start();
             HtmlViewer.CheckBasicCompatibility();
-            basicWatch.Stop();
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex);
         }
-
-        return;
-
-        //check compatibility - full
-        try
-        {
-            fullWatch.Start();
-            await HtmlViewer.CheckFullCompatibilityAsync();
-            fullWatch.Stop();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-        }
-
-        Console.WriteLine($"Basic: {basicWatch.ElapsedMilliseconds}ms");
-        Console.WriteLine($"Full: {fullWatch.ElapsedMilliseconds}ms");
-        Console.WriteLine();
     }
 }
