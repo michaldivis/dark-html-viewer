@@ -17,6 +17,7 @@
 	<PackageId>Divis.DarkHtmlViewer</PackageId>
 	<PackageReleaseNotes>See https://github.com/michaldivis/DarkHtmlViewer/releases</PackageReleaseNotes>
 	<PackageTags>webview;WPF;html;viewer;renderer;browser</PackageTags>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,6 +32,10 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+	<None Include="..\..\README.md">
+	  <Pack>True</Pack>
+	  <PackagePath></PackagePath>
+	</None>
   </ItemGroup>
 
 </Project>
