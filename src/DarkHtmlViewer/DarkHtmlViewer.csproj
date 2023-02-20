@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-	<Version>1.0.4</Version>
+	<Version>1.0.5</Version>
 	<Authors>Michal Diviš</Authors>
 	<Description>A simple HTML viewer control for WPF (using WebView2)</Description>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
