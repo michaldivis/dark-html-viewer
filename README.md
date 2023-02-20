@@ -9,13 +9,13 @@ A WPF user control for displaying in memory HTML. The control stores the loaded 
 
 ### Basics
 Add the namespace to your XAML
-```XAML
-xmlns:darkhtmlviewer="clr-namespace:DarkHtmlViewer;assembly=DarkHtmlViewer"
+```XML
+xmlns:dhv="clr-namespace:DarkHtmlViewer;assembly=DarkHtmlViewer"
 ```
 
 And use the `HtmlViewer` control
-```XAML
-<darkhtmlviewer:HtmlViewer x:Name="htmlViewer" />
+```XML
+<dhv:HtmlViewer x:Name="htmlViewer" />
 ```
 
 ### Commands & methods
@@ -30,11 +30,11 @@ And use the `HtmlViewer` control
 
 ### Loading HTML content
 To load content into the viewer, bind an HTML string to it's `HtmlContent` property
-```XAML
-<darkhtmlviewer:HtmlViewer x:Name="htmlViewer" HtmlContent="{Binding MyHtmlString}" />
+```XML
+<dhv:HtmlViewer x:Name="htmlViewer" HtmlContent="{Binding MyHtmlString}" />
 ```
 or use the `LoadCommand` and pass the HTML string as  the `CommandParameter`
-```XAML
+```XML
 <Button
     Command="{Binding ElementName=htmlViewer, Path=LoadCommand}"
     CommandParameter="{Binding MyHtmlString}"
@@ -45,17 +45,17 @@ or use the `LoadCommand` and pass the HTML string as  the `CommandParameter`
 Whenever a link is clicked in the loaded HTML file, the control fires the `LinkClickedCommand`. Bind you own command to that in order to handle link clicks, example:
 
 View.cs
-```XAML
-<darkhtmlviewer:HtmlViewer
+```XML
+<dhv:HtmlViewer
     x:Name="htmlViewer"
     LinkClickedCommand="{Binding MyLinkClickedCommand}" />
 ```
 
 ViewModel.cs
 ```Csharp
-public ICommand MyLinkClickedCommand => new DarkCommand<string>(HandleLinkClick);
+public ICommand MyLinkClickedCommand => new RelayCommand<string>(HandleLinkClick);
 
-private void HandleLinkClick(string link)
+private void HandleLinkClick(string? link)
 {
     Debug.WriteLine($"Link clicked: {link}");
 }
@@ -65,7 +65,7 @@ private void HandleLinkClick(string link)
 To scroll to a specific element id, you have several options.
 
 `ScrollCommand`: tries to scroll to a specific element in the currently loaded HTML file
-```XAML
+```XML
 <Button
     Command="{Binding ElementName=htmlViewer, Path=ScrollCommand}"
     CommandParameter="elementId"
@@ -73,7 +73,7 @@ To scroll to a specific element id, you have several options.
 ```
 
 `ScrollOnNextLoadCommand`: will try to scroll to a specific element in the next loaded HTML file
-```XAML
+```XML
 <Button
     Command="{Binding ElementName=htmlViewer, Path=ScrollOnNextLoadCommand}"
     CommandParameter="elementId"
@@ -84,7 +84,7 @@ To scroll to a specific element id, you have several options.
 Saves the current scroll position and tries to restore it next time HTML content is loaded. If `ScrollOnNextLoad` is used as well, this will be ignored
 
 `SaveScrollPositionForNextLoadCommand`: will try to scroll to a specific element in the next loaded HTML file
-```XAML
+```XML
 <Button
     Command="{Binding ElementName=htmlViewer, Path=SaveScrollPositionForNextLoadCommand}"
     Content="Save scroll position for next load" />
@@ -93,7 +93,7 @@ Saves the current scroll position and tries to restore it next time HTML content
 ### Search
 
 `SearchCommand`: finds a search term on the current page
-```XAML
+```XML
 <Button
     Command="{Binding ElementName=htmlViewer, Path=SearchCommand}"
     CommandParameter="search text"
@@ -101,7 +101,7 @@ Saves the current scroll position and tries to restore it next time HTML content
 ```
 
 `SearchOnNextLoadCommand`: finds a search term in the next loaded HTML file
-```XAML
+```XML
 <Button
     Command="{Binding ElementName=htmlViewer, Path=SearchOnNextLoadCommand}"
     CommandParameter="search text"
@@ -111,7 +111,7 @@ Saves the current scroll position and tries to restore it next time HTML content
 ### Printing
 
 The `PrintCommand` can be used to bring up the default print dialog window.
-```XAML
+```XML
 <Button
     Command="{Binding ElementName=htmlViewer, Path=PrintCommand}"
     Content="Show print dialog" />
@@ -120,9 +120,13 @@ The `PrintCommand` can be used to bring up the default print dialog window.
 ### Logging
 Enable logging for the control by configuring an `ILoggerFactory` provider like so:
 ```csharp
-using DarkHtmlViewer;
+var loggerFactory = LoggerFactory.Create(c =>
+{
+    c.SetMinimumLevel(LogLevel.Debug);
+    c.AddDebug();
+});
 
-HtmlViewer.ConfigureLogger(() => NullLoggerFactory.Instance);
+HtmlViewer.ConfigureLogger(() => loggerFactory);
 ```
 
 ### Virtual host name to folder path mapping
@@ -130,11 +134,8 @@ See [this page](https://docs.microsoft.com/en-us/dotnet/api/microsoft.web.webvie
 
 Enable virtual host name to folder path mapping like so:
 ```csharp
-using DarkHtmlViewer;
-
 HtmlViewer.ConfigureVirtualHostNameToFolderMappingSettings(new VirtualHostNameToFolderMappingSettings
 {
-    IsEnabled = true,
     Hostname = "myfiles.local",
     FolderPath = @"C:\Resources\MyFiles",
     AccessKind = Microsoft.Web.WebView2.Core.CoreWebView2HostResourceAccessKind.Allow
@@ -150,4 +151,15 @@ You can then access your assets like this in HTML:
 <body>
     <img src="https://myfiles.local/my_image.jpg" />
 </body>
+```
+
+### Default browser background color
+
+Configure the default background color of the control like so:
+
+```csharp
+using System.Drawing;
+
+var backgroundColor = Color.FromArgb(255, 24, 24, 24);
+HtmlViewer.ConfigureDefaultBackgroundColor(backgroundColor);
 ```

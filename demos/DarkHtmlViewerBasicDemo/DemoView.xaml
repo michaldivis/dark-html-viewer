@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:darkHtmlViewer="clr-namespace:DarkHtmlViewer;assembly=DarkHtmlViewer"
+    xmlns:dhv="clr-namespace:DarkHtmlViewer;assembly=DarkHtmlViewer"
     xmlns:local="clr-namespace:DarkHtmlViewerBasicDemo"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -140,7 +140,7 @@
             </Border>
         </ScrollViewer>
 
-        <darkHtmlViewer:HtmlViewer
+        <dhv:HtmlViewer
             x:Name="htmlViewer"
             Grid.Column="1"
             LinkClickedCommand="{Binding HandleLinkClickCommand}" />
